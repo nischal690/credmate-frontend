@@ -1,0 +1,498 @@
+/* Base styles */
+:root {
+  --font-gilroy: 'Gilroy', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+html, body {
+  padding: 0;
+  margin: 0;
+  font-family: var(--font-gilroy);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+  background-color: #F5F5F5;
+}
+
+/* Mobile container styles */
+.mobile-container {
+  width: 375px;
+  min-height: 100vh;
+  margin: 0 auto;
+  background-color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  padding: 0;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+/* Content container styles */
+.content-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #ffffff;
+  position: relative;
+  width: 100%;
+  padding: 64px 0 85px; /* top: appbar height, bottom: navbar height */
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+.main-content {
+  flex: 1;
+  padding-bottom: 85px; /* Same as navbar height */
+  overflow-y: auto;
+}
+
+/* App bar styles */
+.app-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100vw;
+  height: 64px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  background-color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
+  z-index: 1000;
+}
+
+.app-bar-left,
+.app-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.icon-button {
+  background: none;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+
+.icon-button:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.icon-button .material-icons {
+  font-size: 24px;
+  color: #333333;
+}
+
+/* News Carousel styles */
+.news-carousel {
+  height: 75px;
+  background-color: #F9EDF3;
+  border: 1px solid #A2195E;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 0 20px 16px;
+  position: relative;
+  box-sizing: border-box;
+  width: calc(100% - 40px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.news-content {
+  text-align: center;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+  margin: 0;
+  padding: 0 20px;
+  line-height: 1.4;
+  color: #A2195E;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+}
+
+.carousel-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: rgba(162, 25, 94, 0.25);
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.dot.active {
+  background-color: #A2195E;
+}
+
+/* Credit Score Section styles */
+.credit-score-section {
+  width: 100%;
+  padding: 0 20px;
+  margin-bottom: 24px;
+  box-sizing: border-box;
+}
+
+.section-title {
+  margin-bottom: 16px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333333;
+  padding: 0 20px;
+}
+
+/* Credit Score Gauge styles */
+.credit-score-gauge {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 24px;
+  background-color: white;
+  box-sizing: border-box;
+}
+
+.semi-circle-container {
+  position: relative;
+  width: 100%;
+  max-width: 300px;
+  height: auto;
+  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+}
+
+.semi-circle-container img {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+.floating-indicator {
+  position: absolute;
+  width: 12.81px;
+  height: 60px;
+  background-color: #fff;
+  border-radius: 2px;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+  transform-origin: center;
+  animation: floatIndicator 2s ease-in-out infinite;
+  z-index: 10;
+}
+
+@keyframes floatIndicator {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.score-display {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 2px;
+}
+
+.score-value {
+  font-size: 32px;
+  font-weight: 600;
+  color: #333333;
+  font-family: var(--font-gilroy);
+}
+
+.score-max {
+  font-size: 20px;
+  font-weight: 500;
+  color: #666666;
+  font-family: var(--font-gilroy);
+}
+
+.status-label {
+  margin-top: 16px;
+  font-size: 18px;
+  font-weight: 500;
+  text-align: center;
+  font-family: var(--font-gilroy);
+}
+
+.update-text {
+  margin-top: 8px;
+  font-size: 14px;
+  color: #666666;
+  text-align: center;
+  font-family: var(--font-gilroy);
+}
+
+/* Credit Metrics Grid styles */
+.credit-metrics-container {
+  width: 100%;
+  margin-top: 24px;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.credit-metrics-grid {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  padding: 0 12px;
+  box-sizing: border-box;
+}
+
+.metric-card {
+  background-color: #A2195E;
+  border-radius: 8px;
+  padding: 12px 12px 0 12px;
+  color: white;
+  width: 83px;
+  height: 90px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+.metric-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+.metric-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.metric-title {
+  font-size: 12px;
+  line-height: 1.2;
+  flex: 1;
+  margin-right: 4px;
+}
+
+.metric-header .material-icons {
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.metric-image {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 0;
+  margin: 0;
+}
+
+.metric-image img {
+  margin: 0;
+  padding: 0;
+}
+
+/* Responsive adjustments for container padding only */
+@media screen and (min-width: 400px) {
+  .credit-metrics-grid {
+    padding: 0 12px;
+  }
+}
+
+@media screen and (min-width: 480px) {
+  .credit-metrics-grid {
+    padding: 0 16px;
+  }
+}
+
+/* Override CircularProgressbar styles */
+.CircularProgressbar-path {
+  stroke-width: 12px;
+}
+
+.CircularProgressbar-trail {
+  stroke-width: 12px;
+}
+
+.CircularProgressbar-text {
+  font-family: var(--font-gilroy) !important;
+  font-weight: 600 !important;
+}
+
+/* Recent Activity styles */
+.recent-activity-section {
+  width: 100%;
+  padding: 24px 20px;
+  box-sizing: border-box;
+}
+
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.activity-item {
+  background: white;
+  border: 1px solid #E5E5E5;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.activity-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.activity-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.activity-title {
+  font-weight: 500;
+  color: #333333;
+  font-size: 14px;
+}
+
+.activity-date {
+  color: #666666;
+  font-size: 12px;
+}
+
+.activity-details {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.activity-amount {
+  font-weight: 600;
+  color: #A2195E;
+  font-size: 14px;
+}
+
+.activity-description {
+  color: #666666;
+  font-size: 12px;
+}
+
+.activity-status {
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.status-pending {
+  background-color: #FFF3DC;
+  color: #B25E09;
+}
+
+.status-approved {
+  background-color: #DCFFE4;
+  color: #0B7724;
+}
+
+.status-rejected {
+  background-color: #FFE4E4;
+  color: #B20909;
+}
+
+/* Navbar styles */
+.navbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100vw;
+  height: 85px;
+  background: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 40px;
+  box-shadow: 0px -4px 8px rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
+  z-index: 1000;
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: #666666;
+  text-decoration: none;
+  font-size: 12px;
+  min-width: 56px;
+}
+
+.nav-item.active {
+  color: #A2195E;
+}
+
+.nav-item .material-icons {
+  font-size: 24px;
+}
+
+/* For screens smaller than 375px */
+@media (max-width: 375px) {
+  .mobile-container {
+    width: 100%;
+    min-height: 100vh;
+    max-height: none;
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
+
+/* For screens larger than 375px */
+@media (min-width: 376px) {
+  .mobile-container {
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    height: 812px;
+  }
+}

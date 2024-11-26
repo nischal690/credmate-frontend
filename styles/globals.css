@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, 
+  body {
+    @apply h-full w-full;
+    height: 100vh;
+    overflow-x: hidden;
+  }
+}
+
+@layer base {
+  body {
+    background-color: #1a1a1a;
+  }
+}
+
+.mobile-container {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mobile-content {
+  background-color: white;
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* Mobile-first styles */
+@media (max-width: 375px) {
+  .mobile-content {
+    width: 100%;
+  }
+}
+
+/* Desktop styles */
+@media (min-width: 376px) {
+  body {
+    overflow: hidden;
+  }
+  
+  .mobile-container {
+    box-shadow: 0 0 20px #0000001a;
+    border-radius: 20px;
+    overflow: auto;
+    height: 812px;
+    width: 365px !important;
+  }
+  
+  .mobile-content {
+    width: 365px !important;
+    height: 812px;
+    min-height: auto;
+  }
+}
