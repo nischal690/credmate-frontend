@@ -6,7 +6,7 @@ import CreditMetricsGrid from './CreditMetricsGrid';
 export default function CreditScoreContainer() {
   // Example credit score data
   const creditScore = {
-    score: 752,
+    score: 352,
     maxScore: 1000,
     status: 'Very Good'
   };
