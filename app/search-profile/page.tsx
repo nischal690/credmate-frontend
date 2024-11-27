@@ -24,6 +24,10 @@ const SearchProfile = () => {
     router.push('/search-aadhaar');
   };
 
+  const handleTakePhoto = () => {
+    router.push('/camera');
+  };
+
   return (
     <div className="mobile-container">
       <div className="content-container">
@@ -35,7 +39,7 @@ const SearchProfile = () => {
             <h3 className="search-option-title">Search by Face</h3>
             <div className="search-option-box">
               <div className="sub-options">
-                <div className="sub-option-box">
+                <div className="sub-option-box" onClick={handleTakePhoto}>
                   <span>Take a Photo</span>
                 </div>
                 <div className="sub-option-box">
