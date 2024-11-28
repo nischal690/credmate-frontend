@@ -6,6 +6,7 @@ import { PhoneInput } from "./components/PhoneInput";
 import { OTPVerification } from "./components/OTPVerification";
 import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 import { auth } from "../../../lib/firebase";
+import { cookies } from 'next/headers';
 
 export default function PhoneAuthPage() {
   const router = useRouter();
@@ -60,11 +61,23 @@ export default function PhoneAuthPage() {
       const result = await confirmationResult.confirm(otp);
       const user = result.user;
       
-      // You can store the user token or data here
-      const token = await user.getIdToken();
-      localStorage.setItem('authToken', token);
+      // Get the token and log it
+      const token = await user.getIdToken(true); // Force token refresh
+      console.log('Firebase Auth Success');
+      console.log('User ID:', user.uid);
+      console.log('Phone:', user.phoneNumber);
+      console.log('Firebase ID Token:', token);
       
-      router.push("/");
+      // Store token in localStorage and cookie
+      localStorage.setItem('authToken', token);
+      document.cookie = `authToken=${token}; path=/`;
+      
+      // Log the stored values
+      console.log('Stored token in localStorage:', localStorage.getItem('authToken'));
+      console.log('Current user after auth:', auth.currentUser?.uid);
+      
+      // Navigate to home page
+      window.location.href = '/';
     } catch (err: any) {
       setError(err.message || "Invalid OTP");
       console.error("OTP verification error:", err);
