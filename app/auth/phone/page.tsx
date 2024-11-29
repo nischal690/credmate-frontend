@@ -28,11 +28,27 @@ export default function PhoneAuthPage() {
   const [showCountryList, setShowCountryList] = useState(false);
 
   const setupRecaptcha = () => {
-    if (!(window as any).recaptchaVerifier) {
-      (window as any).recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-        size: 'invisible',
-        callback: () => {},
-      });
+    try {
+      if (!(window as any).recaptchaVerifier) {
+        console.warn('DEBUG - Setting up new RecaptchaVerifier');
+        (window as any).recaptchaVerifier = new RecaptchaVerifier(
+          auth,
+          'recaptcha-container',
+          {
+            size: 'invisible',
+            callback: () => {
+              console.warn('DEBUG - Recaptcha callback executed');
+            },
+            'expired-callback': () => {
+              console.warn('DEBUG - Recaptcha expired');
+            }
+          }
+        );
+      }
+      return (window as any).recaptchaVerifier;
+    } catch (error) {
+      console.error('DEBUG - Recaptcha setup error:', error);
+      throw error;
     }
   };
 
@@ -41,20 +57,48 @@ export default function PhoneAuthPage() {
       setLoading(true);
       setError("");
       
-      setupRecaptcha();
-      const formattedPhone = selectedCountry.code + phone;
+      const verifier = setupRecaptcha();
+      // Format phone number to E.164 format
+      const formattedPhone = `${selectedCountry.code}${phone.replace(/\D/g, '')}`;
+      
+      // Debug logs before authentication
+      alert(`Attempting to authenticate with E.164 format: ${formattedPhone}`);
+      console.warn('DEBUG - Phone Auth Request:', {
+        formattedPhone,
+        countryCode: selectedCountry.code,
+        phoneWithoutCode: phone,
+        phoneLength: formattedPhone.length,
+        timestamp: new Date().toISOString()
+      });
+      
       const confirmation = await signInWithPhoneNumber(
         auth,
         formattedPhone,
-        (window as any).recaptchaVerifier
+        verifier
       );
+      
+      // Debug logs after successful authentication request
+      alert(`OTP sent successfully to: ${formattedPhone}`);
+      console.warn('DEBUG - Firebase Response:', {
+        success: true,
+        verificationId: confirmation.verificationId,
+        phoneNumber: formattedPhone,
+        timestamp: new Date().toISOString()
+      });
       
       setConfirmationResult(confirmation);
       setPhoneNumber(phone);
       setShowOTP(true);
     } catch (err: any) {
+      // Debug logs for errors
+      alert(`Error sending OTP to: ${selectedCountry.code}${phone}\nError: ${err.message}`);
+      console.warn('DEBUG - Phone Auth Error:', {
+        error: err.message,
+        errorCode: err.code,
+        phoneNumber: selectedCountry.code + phone,
+        timestamp: new Date().toISOString()
+      });
       setError(err.message || "Failed to send OTP");
-      console.error("Phone auth error:", err);
     } finally {
       setLoading(false);
     }
@@ -69,29 +113,47 @@ export default function PhoneAuthPage() {
         throw new Error("Please request OTP first");
       }
 
+      // Debug logs before OTP verification
+      alert(`Verifying OTP for: ${selectedCountry.code}${phoneNumber}`);
+      console.warn('DEBUG - OTP Verification Attempt:', {
+        phoneNumber: selectedCountry.code + phoneNumber,
+        otpLength: otp.length,
+        timestamp: new Date().toISOString()
+      });
+
       const result = await confirmationResult.confirm(otp);
       const user = result.user;
+      const token = await user.getIdToken(true);
+
+      // Debug logs after successful verification
+      alert('Authentication successful!');
+      console.warn('DEBUG - Auth Success:', {
+        userId: user.uid,
+        phoneNumber: user.phoneNumber,
+        tokenPresent: !!token,
+        timestamp: new Date().toISOString()
+      });
       
-      // Get the token and log it
-      const token = await user.getIdToken(true); // Force token refresh
-      console.log('Firebase Auth Success');
-      console.log('User ID:', user.uid);
-      console.log('Phone:', user.phoneNumber);
-      console.log('Firebase ID Token:', token);
-      
-      // Store token in localStorage and cookie
       localStorage.setItem('authToken', token);
       document.cookie = `authToken=${token}; path=/`;
       
-      // Log the stored values
-      console.log('Stored token in localStorage:', localStorage.getItem('authToken'));
-      console.log('Current user after auth:', auth.currentUser?.uid);
+      // Final debug log before redirect
+      console.warn('DEBUG - Auth Complete:', {
+        storedToken: !!localStorage.getItem('authToken'),
+        currentUserId: auth.currentUser?.uid,
+        timestamp: new Date().toISOString()
+      });
       
-      // Navigate to home page
       window.location.href = '/';
     } catch (err: any) {
+      // Debug logs for OTP verification errors
+      alert(`OTP Verification failed: ${err.message}`);
+      console.warn('DEBUG - OTP Verification Error:', {
+        error: err.message,
+        errorCode: err.code,
+        timestamp: new Date().toISOString()
+      });
       setError(err.message || "Invalid OTP");
-      console.error("OTP verification error:", err);
     } finally {
       setLoading(false);
     }
@@ -113,6 +175,9 @@ export default function PhoneAuthPage() {
       <main className="flex-1 overflow-y-auto">
         <div className="px-6 pt-16 pb-24 bg-gradient-to-br from-white to-pink-50 min-h-full">
           <div className="max-w-md mx-auto pt-12">
+            {/* Recaptcha Container */}
+            <div id="recaptcha-container"></div>
+            
             <div className="flex flex-col items-center mb-12">
               <Image
                 src="/images/logo 1 (6).svg"
