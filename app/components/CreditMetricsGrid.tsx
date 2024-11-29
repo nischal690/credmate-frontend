@@ -11,11 +11,17 @@ export default function CreditMetricsGrid() {
   const handleSearchProfileClick = () => {
     router.push('/search-profile');
   };
+  const handleRequestLoan = () => {
+    router.push('/request-loan');
+  }
+  const handleApproveLoan = () => {
+    router.push('/approve-loan');
+  }
 
   const metrics = [
     { title: 'Search Profile', image: '/images/Frame.svg', onClick: handleSearchProfileClick },
-    { title: 'Request Loan', image: '/images/Frame (1).svg' },
-    { title: 'Approve Loan', image: '/images/Frame (2).svg' },
+    { title: 'Request Loan', image: '/images/Frame (1).svg' , onClick: handleRequestLoan },
+    { title: 'Approve Loan', image: '/images/Frame (2).svg', onClick: handleApproveLoan },
   ];
 
   return (
@@ -35,7 +41,7 @@ export default function CreditMetricsGrid() {
               key={index}
               className="metric-card bg-white rounded-xl p-3 shadow-sm flex flex-col justify-between"
               onClick={metric.onClick}
-              style={{ cursor: metric.onClick ? 'pointer' : 'default' }}
+              style={{ cursor: 'pointer'}}
             >
               <div className="metric-content">
                 <div className="metric-header flex justify-between items-center mb-2">
