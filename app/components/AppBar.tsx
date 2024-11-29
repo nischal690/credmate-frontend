@@ -9,7 +9,6 @@ import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import Divider from '@mui/material/Divider';
-import HomeIcon from '@mui/icons-material/Home';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import HistoryIcon from '@mui/icons-material/History';
 import SettingsIcon from '@mui/icons-material/Settings';
@@ -17,6 +16,8 @@ import HelpIcon from '@mui/icons-material/Help';
 import LogoutIcon from '@mui/icons-material/Logout';
 import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
 import LockIcon from '@mui/icons-material/Lock';
+import ShareIcon from '@mui/icons-material/Share';
+import CurrencyRupeeIcon from '@mui/icons-material/CurrencyRupee';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 
@@ -46,9 +47,22 @@ export default function AppBar() {
     router.push('/upgrade'); // Navigate to upgrade page
   };
 
+  const handleReferral = () => {
+    setDrawerOpen(false); // Close the drawer
+    router.push('/referral'); // Navigate to referral page
+  };
+
   const menuItems = [
-    { text: 'Home', icon: <HomeIcon />, onClick: () => console.log('Home clicked'), color: '#D14B8F' },
     { text: 'Settings', icon: <SettingsIcon />, onClick: () => console.log('Settings clicked'), color: '#CC1E77' },
+    { 
+      text: 'Refer & Earn', 
+      icon: <ShareIcon />, 
+      onClick: handleReferral,
+      color: '#D14B8F',
+      badge: '100',
+      highlight: true,
+      sparkle: true
+    },
     { text: 'Help & Support', icon: <HelpIcon />, onClick: () => console.log('Help clicked'), color: '#D62081' },
     { text: 'Logout', icon: <LogoutIcon />, onClick: () => console.log('Logout clicked'), color: '#E0228B' },
   ];
@@ -182,7 +196,7 @@ export default function AppBar() {
                 sx={{
                   position: 'relative',
                   overflow: 'hidden',
-                  backgroundColor: hoveredItem === item.text ? 'rgba(162, 25, 94, 0.1)' : 'transparent',
+                  backgroundColor: item.highlight ? 'rgba(162, 25, 94, 0.15)' : (hoveredItem === item.text ? 'rgba(162, 25, 94, 0.1)' : 'transparent'),
                   '&:hover': {
                     backgroundColor: 'rgba(162, 25, 94, 0.1)',
                     transform: 'translateX(4px)',
@@ -198,22 +212,46 @@ export default function AppBar() {
                 }}
               >
                 <ListItemIcon sx={{ 
-                  color: hoveredItem === item.text ? item.color : 'rgba(255, 255, 255, 0.7)',
+                  color: (item.highlight || hoveredItem === item.text) ? item.color : 'rgba(255, 255, 255, 0.7)',
                   transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
                   minWidth: '40px',
                 }}>
                   {item.icon}
                 </ListItemIcon>
                 <ListItemText 
-                  primary={item.text} 
+                  primary={item.text}
                   sx={{
                     '& .MuiListItemText-primary': {
-                      color: hoveredItem === item.text ? 'white' : 'rgba(255, 255, 255, 0.7)',
-                      fontWeight: 500,
+                      color: (item.highlight || hoveredItem === item.text) ? 'white' : 'rgba(255, 255, 255, 0.7)',
+                      fontWeight: item.highlight ? 600 : 500,
                       transition: 'all 0.3s ease',
                     },
                   }}
                 />
+                {item.badge && (
+                  <div className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-[#A2195E] text-white">
+                    <CurrencyRupeeIcon sx={{ fontSize: 12 }} />
+                    {item.badge}
+                  </div>
+                )}
+                {item.sparkle && (
+                  <motion.div
+                    initial={{ scale: 0.5, opacity: 0 }}
+                    animate={{ 
+                      scale: [0.5, 1.2, 1],
+                      opacity: [0, 1, 0.8]
+                    }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      repeatType: "reverse"
+                    }}
+                    className="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#FFD700]"
+                    style={{
+                      boxShadow: '0 0 10px #FFD700',
+                    }}
+                  />
+                )}
                 {hoveredItem === item.text && (
                   <motion.div
                     initial={{ scale: 0, opacity: 0 }}
