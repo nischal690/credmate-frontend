@@ -87,17 +87,20 @@ export default function PhoneAuthPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="auth-container">
       <div id="recaptcha-container"></div>
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            {showOTP ? "Enter OTP" : "Sign in with Phone"}
-          </h2>
-        </div>
+      <div className="auth-card">
+        <h2 className="auth-title">
+          {showOTP ? "Verify OTP" : "Welcome Back"}
+        </h2>
+        <p className="auth-subtitle">
+          {showOTP 
+            ? `Please enter the verification code sent to ${phoneNumber}` 
+            : "Sign in with your phone number to continue"}
+        </p>
         
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-4" role="alert">
             <span className="block sm:inline">{error}</span>
           </div>
         )}

@@ -52,14 +52,20 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="mobile-container">
-      <div className="content-container">
-        <AppBar />
-        <NewsCarousel />
-        <CreditScoreContainer />
-        <RecentActivity />
-        <NavBar />
-      </div>
+    <div className="flex flex-col min-h-screen bg-white">
+      <AppBar />
+      
+      <main className="flex-1 overflow-y-auto">
+        <div className="px-6 pt-16 pb-24 bg-gradient-to-br from-white to-pink-50 min-h-full">
+          <div className="max-w-md mx-auto">
+            <NewsCarousel />
+            <CreditScoreContainer />
+            <RecentActivity />
+          </div>
+        </div>
+      </main>
+
+      <NavBar />
     </div>
   );
 }

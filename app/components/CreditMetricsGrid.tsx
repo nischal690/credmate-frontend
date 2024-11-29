@@ -25,36 +25,30 @@ export default function CreditMetricsGrid() {
   ];
 
   return (
-    <section className="credit-metrics-container mt-[453px] ml-auto">
+    <section className="mt-6 px-3">
       <div 
-        className="mx-[20px] bg-[#F6F6F6] rounded-[12px]"
-        style={{
-          width: '335px',
-          height: '126px',
-          padding: '18px 24.5px',
-          marginLeft: 'auto'
-        }}
+        className="bg-[#F6F6F6] rounded-[12px] w-full p-4"
       >
-        <div className="grid grid-cols-3 gap-6">
+        <div className="grid grid-cols-3 gap-4 justify-center">
           {metrics.map((metric, index) => (
             <article 
               key={index}
-              className="metric-card bg-white rounded-xl p-3 shadow-sm flex flex-col justify-between"
+              className="bg-[#A2195E] rounded-xl p-3 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer w-[83px] h-[90px] flex flex-col justify-between"
               onClick={metric.onClick}
-              style={{ cursor: 'pointer'}}
             >
-              <div className="metric-content">
-                <div className="metric-header flex justify-between items-center mb-2">
-                  <span className="metric-title text-sm font-medium">{metric.title}</span>
-                  <ChevronRight className="w-4 h-4 text-gray-400" />
+              <div className="flex flex-col h-full">
+                <div className="flex justify-between items-start mb-auto">
+                  <span className="text-xs font-medium leading-tight text-white line-clamp-2">{metric.title}</span>
+                  <ChevronRight className="w-3.5 h-3.5 text-white flex-shrink-0 mt-0.5" />
                 </div>
-                <div className="metric-image mt-2">
+                <div className="flex justify-end mt-2">
                   <Image
                     src={metric.image}
                     alt={metric.title}
-                    width={40}
-                    height={40}
+                    width={32}
+                    height={32}
                     priority
+                    className="object-contain brightness-0 invert"
                   />
                 </div>
               </div>
@@ -65,4 +59,3 @@ export default function CreditMetricsGrid() {
     </section>
   );
 }
-
