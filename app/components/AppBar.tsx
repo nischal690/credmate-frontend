@@ -73,7 +73,7 @@ export default function AppBar() {
         <div className="max-w-md mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Image
-              src="/images/logo 1 (6).svg"
+              src="/images/logo.svg"
               alt="Credmate Logo"
               width={100}
               height={32}
