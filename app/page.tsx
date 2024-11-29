@@ -8,23 +8,8 @@ import RecentActivity from './components/RecentActivity';
 import NavBar from './components/NavBar';
 import { auth } from '../lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-
-async function logTokenToServer(token: string) {
-  try {
-    const response = await fetch('/api/log-token', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ token }),
-    });
-    if (!response.ok) {
-      throw new Error('Failed to log token');
-    }
-  } catch (error) {
-    console.error('Error logging token to server:', error);
-  }
-}
+import apiService from './lib/api/apiService';
+import { API_ENDPOINTS } from './lib/api/config';
 
 export default function Home() {
   useEffect(() => {
@@ -37,11 +22,28 @@ export default function Home() {
       
       if (user) {
         try {
-          const token = await user.getIdToken(true); // Force token refresh
-          console.log('Current Firebase ID Token:', token);
-          await logTokenToServer(token);
+          const idToken = await user.getIdToken(true); // Force token refresh
+          console.log('Current Firebase ID Token:', idToken);
+          
+          // Define the expected response type
+          interface TokenResponse {
+            data?: {
+              token?: string;
+            };
+          }
+
+          // Send the token to our backend
+          const response: TokenResponse = await apiService.post(API_ENDPOINTS.AUTH.TOKEN, {
+            idToken: idToken
+          });
+          
+          // Store the response token if needed
+          if (response.data?.token) {
+            localStorage.setItem('token', response.data.token);
+          }
+          
         } catch (error) {
-          console.error('Error getting token:', error);
+          console.error('Error getting or sending token:', error);
         }
       }
     });
