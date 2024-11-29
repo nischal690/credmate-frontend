@@ -10,6 +10,7 @@ import Image from 'next/image';
 const countryCodes = [
   { code: '+91', country: 'India', flag: '🇮🇳' },
   { code: '+1', country: 'USA', flag: '🇺🇸' },
+  { code: '+1', country: 'Canada', flag: '🇨🇦' },
   { code: '+44', country: 'UK', flag: '🇬🇧' },
   { code: '+61', country: 'Australia', flag: '🇦🇺' },
   { code: '+65', country: 'Singapore', flag: '🇸🇬' },
