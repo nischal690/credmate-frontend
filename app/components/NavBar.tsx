@@ -51,7 +51,7 @@ export default function NavBar() {
           className="w-6 h-6"
           style={{ color: isActive('/profile') ? '#A2195E' : 'inherit' }}
         />
-        <span style={{ color: isActive('/profile') ? '#A2195E' : 'inherit' }}>Person</span>
+        <span style={{ color: isActive('/profile') ? '#A2195E' : 'inherit' }}>Profile</span>
       </Link>
     </nav>
   );

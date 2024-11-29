@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 export default function SearchProfileAppBar() {
   const router = useRouter();
@@ -17,7 +18,12 @@ export default function SearchProfileAppBar() {
           className="w-[34px] h-[34px] bg-[#F4F4F4] rounded-full flex items-center justify-center cursor-pointer"
           onClick={handleBackClick}
         >
-          <span className="material-icons" style={{ fontSize: '24px' }}>arrow_back</span>
+          <Image
+            src="/images/searchprofileicons/arrowbendleft.svg"
+            alt="Back Icon"
+            width={24} 
+            height={24}
+          />
         </div>
         <div className="flex-1 text-center">
           <span style={{ fontSize: '17px' }}>Search Profile</span>
