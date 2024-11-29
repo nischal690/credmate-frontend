@@ -2,9 +2,19 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
-import { auth } from "../../../lib/firebase";
 import Image from 'next/image';
+import { RecaptchaVerifier, signInWithPhoneNumber, getAuth, Auth } from "firebase/auth";
+import { initializeApp } from "firebase/app";
+
+const firebaseConfig = {
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  // ... other config values
+};
+
+const app = initializeApp(firebaseConfig);
+const auth: Auth = getAuth(app);
 
 // Country codes data
 const countryCodes = [
@@ -180,7 +190,7 @@ export default function PhoneAuthPage() {
             
             <div className="flex flex-col items-center mb-12">
               <Image
-                src="/images/logo 1 (6).svg"
+                src="/images/logo.svg"
                 alt="Credmate Logo"
                 width={200}
                 height={53}
