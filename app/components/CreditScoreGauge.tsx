@@ -83,8 +83,8 @@ export default function CreditScoreGauge({
         />
 
         {/* Score Display */}
-        <div className="absolute left-1/2 top-[60px] transform -translate-x-1/2 text-center">
-          <div className="flex items-baseline justify-center gap-1">
+        <div className="absolute left-1/2 top-[100px] transform -translate-x-1/2 text-center">
+          <div className="flex items-baseline justify-center gap-1 mb-4">
             <span 
               className="text-3xl font-bold tabular-nums"
               style={{ color: getPathColor(Math.round((currentScore / maxScore) * 100)) }}
@@ -93,7 +93,7 @@ export default function CreditScoreGauge({
             </span>
             <span className="text-lg text-muted-foreground">/{maxScore}</span>
           </div>
-          <div className="flex items-center justify-center gap-2 mt-1">
+          <div className="flex items-center justify-center gap-2">
             <div 
               className="flex items-center gap-1.5 px-2 py-0.5 rounded-lg"
               style={{ backgroundColor: '#F2F2F2' }}

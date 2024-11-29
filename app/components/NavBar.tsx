@@ -29,7 +29,7 @@ export default function NavBar() {
           className="w-6 h-6"
           style={{ color: isActive('/table-rows') ? '#A2195E' : 'inherit' }}
         />
-        <span style={{ color: isActive('/table-rows') ? '#A2195E' : 'inherit' }}>Table Rows</span>
+        <span style={{ color: isActive('/table-rows') ? '#A2195E' : 'inherit' }}>Loans</span>
       </Link>
       <Link href="/history" className={`nav-item ${isActive('/history') ? 'active' : ''}`}>
         <Image

@@ -19,7 +19,7 @@ export default function CreditScoreContainer() {
         maxScore={creditScore.maxScore}
         status={creditScore.status}
       />
-      <p className="text-center text-gray-400 mx-1 mb-1 px-1">Your <span className="text-red-500">Credmate</span> score is updated every 24 hours</p>
+      <p className="text-center text-[#8A8A8A] mx-1 mb-1 px-1">Your <span className="text-[#A2195E]">Credmate</span> score is updated every 24 hours</p>
       <CreditMetricsGrid />
     </div>
   );

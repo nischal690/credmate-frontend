@@ -3,7 +3,6 @@
 import React from 'react';
 
 export default function RecentActivity() {
-  // Example activity data
   const activities = [
     {
       id: 1,
@@ -30,32 +29,36 @@ export default function RecentActivity() {
   ];
 
   return (
-    <section className="recent-activity-section">
-      <h2 className="section-title">Recent Activity</h2>
-      <div className="activity-list">
+    <section className="recent-activity-section mt-[-20px] px-5">
+      <h2 className="font-['Gilroy-Medium'] font-normal text-base leading-[135%] tracking-[0.01em] text-[#555555] mb-4">
+        Recent Activity
+      </h2>
+      <div className="activity-list space-y-1"> {/* Reduced gap between activity cards */}
         {activities.map((activity) => (
-          <div key={activity.id} className="activity-item">
+          <div key={activity.id} className="activity-item bg-white rounded-lg shadow-sm p-4">
             <div className="activity-content">
-              <div className="activity-header">
-                <span className="activity-title">{activity.title}</span>
-                <span className="activity-date">
+              <div className="activity-header flex justify-between items-center mb-2">
+                <span className="activity-title font-medium text-sm text-gray-800">{activity.title}</span>
+                <span className="activity-date text-xs text-gray-500">
                   {new Date(activity.date).toLocaleDateString('en-IN', {
                     day: 'numeric',
                     month: 'short'
                   })}
                 </span>
               </div>
-              <div className="activity-details">
+              <div className="activity-details text-sm">
                 {activity.amount && (
-                  <span className="activity-amount">{activity.amount}</span>
+                  <span className="activity-amount block text-green-600 font-medium">{activity.amount}</span>
                 )}
                 {activity.status && (
-                  <span className={`activity-status status-${activity.status.toLowerCase()}`}>
+                  <span className={`activity-status inline-block px-2 py-1 rounded-full text-xs ${
+                    activity.status.toLowerCase() === 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'
+                  }`}>
                     {activity.status}
                   </span>
                 )}
                 {activity.description && (
-                  <span className="activity-description">{activity.description}</span>
+                  <span className="activity-description block text-gray-600 mt-1">{activity.description}</span>
                 )}
               </div>
             </div>
@@ -65,3 +68,4 @@ export default function RecentActivity() {
     </section>
   );
 }
+
