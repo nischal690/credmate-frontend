@@ -1,28 +1,35 @@
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 
 // List of public paths that don't require authentication
-const publicPaths = ['/auth/phone']
+const publicPaths = ['/auth/phone'];
 
-export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl
-  const token = request.cookies.get('authToken')?.value
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  const token = request.cookies.get('authToken')?.value;
 
-  // Allow access to public paths
-  if (publicPaths.includes(pathname)) {
-    // If user is authenticated and trying to access auth page, redirect to home
-    if (token) {
-      return NextResponse.redirect(new URL('/', request.url))
+  // Special handling for root path
+  if (pathname === '/') {
+    if (!token) {
+      return NextResponse.redirect(new URL('/auth/phone', request.url));
     }
-    return NextResponse.next()
+    return NextResponse.next();
+  }
+
+  // Handle authentication for public paths
+  if (publicPaths.includes(pathname)) {
+    if (token) {
+      return NextResponse.redirect(new URL('/', request.url));
+    }
+    return NextResponse.next();
   }
 
   // Protected routes - require authentication
   if (!token) {
-    return NextResponse.redirect(new URL('/auth/phone', request.url))
+    return NextResponse.redirect(new URL('/auth/phone', request.url));
   }
 
-  return NextResponse.next()
+  return NextResponse.next();
 }
 
 // Configure which routes to run middleware on
@@ -37,4 +44,4 @@ export const config = {
      */
     '/((?!api|_next/static|_next/image|favicon.ico|manifest.json).*)',
   ],
-}
+};
