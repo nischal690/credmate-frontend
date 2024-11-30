@@ -131,54 +131,71 @@ export default function CameraPage() {
     <div className="min-h-screen bg-white flex flex-col">
       <SearchProfileAppBar />
       
-      <main className="flex-1 flex flex-col items-center justify-center p-4">
+      <main className="flex-1 flex flex-col items-center justify-center bg-gray-900 p-4">
         <div className="w-full max-w-md relative">
-          <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            muted
-            className={`w-full h-[300px] object-cover rounded-lg ${
-              state.facingMode === 'user' ? 'scale-x-[-1]' : ''
-            }`}
-          />
+          {/* Camera frame with better styling */}
+          <div className="relative rounded-2xl overflow-hidden shadow-2xl border-4 border-white/10">
+            <video
+              ref={videoRef}
+              autoPlay
+              playsInline
+              muted
+              className={`w-full h-[500px] object-cover bg-black ${
+                state.facingMode === 'user' ? 'scale-x-[-1]' : ''
+              }`}
+            />
+            
+            {/* Overlay for visual feedback */}
+            <div className="absolute inset-0 pointer-events-none">
+              <div className="w-full h-full border-2 border-white/20 rounded-lg"></div>
+              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                <div className="w-48 h-48 border-2 border-pink-500/50 rounded-full"></div>
+              </div>
+            </div>
+          </div>
           
           {!state.isInitialized && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500 mb-2" />
-              <p className="text-sm text-gray-600">Initializing camera...</p>
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900/90 backdrop-blur-sm rounded-2xl">
+              <div className="animate-spin rounded-full h-12 w-12 border-4 border-pink-500 border-t-transparent mb-4" />
+              <p className="text-white/80 text-lg font-medium">Initializing camera...</p>
             </div>
           )}
 
           {state.error && (
-            <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-red-50 px-4 py-2 rounded-lg">
-              <p className="text-pink-500 text-center text-sm">{state.error}</p>
+            <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-red-500/10 backdrop-blur-sm px-6 py-3 rounded-full border border-red-500/20">
+              <p className="text-red-400 text-center text-sm font-medium">{state.error}</p>
             </div>
           )}
 
           {state.isInitialized && !state.isProcessing && (
-            <>
-              <button
-                onClick={capturePhoto}
-                className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-pink-500 text-white px-6 py-2 rounded-full shadow-lg hover:bg-pink-600 transition-colors"
-              >
-                <Camera className="w-5 h-5" />
-              </button>
-
+            <div className="absolute bottom-6 left-0 right-0 flex items-center justify-center space-x-6">
               {'mediaDevices' in navigator && 'enumerateDevices' in navigator.mediaDevices && (
                 <button
                   onClick={switchCamera}
-                  className="absolute bottom-4 right-4 bg-white/80 backdrop-blur p-2 rounded-full shadow-lg hover:bg-white/90 transition-colors"
+                  className="bg-white/10 backdrop-blur-sm p-4 rounded-full shadow-lg hover:bg-white/20 transition-all duration-200 transform hover:scale-105"
                 >
-                  <FlipCameraIos className="w-5 h-5 text-gray-700" />
+                  <FlipCameraIos className="w-6 h-6 text-white" />
                 </button>
               )}
-            </>
+
+              <button
+                onClick={capturePhoto}
+                className="bg-pink-500 text-white p-6 rounded-full shadow-lg hover:bg-pink-600 transition-all duration-200 transform hover:scale-105 flex items-center justify-center"
+              >
+                <div className="relative">
+                  <div className="absolute inset-0 bg-pink-400 rounded-full animate-ping opacity-20"></div>
+                  <Camera className="w-8 h-8" />
+                </div>
+              </button>
+            </div>
           )}
 
           {state.isProcessing && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white" />
+            <div className="absolute inset-0 flex items-center justify-center bg-black/70 backdrop-blur-sm rounded-2xl">
+              <div className="flex flex-col items-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-4 border-pink-500 border-t-transparent mb-4" />
+                <p className="text-white/80 text-lg font-medium">Processing...</p>
+              </div>
             </div>
           )}
         </div>
@@ -188,9 +205,3 @@ export default function CameraPage() {
     </div>
   )
 }
-
-
-
-
-//The videoRef might not be correctly bound to the <video> element due to the usage of createRef.//The videoRef might not be correctly bound to the <video> element due to the usage of createRef.
-//The <video> element might not be displayed due to CSS issues or conditional rendering logic preventing its visibility.
