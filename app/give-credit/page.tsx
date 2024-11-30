@@ -38,6 +38,10 @@ const savedProfiles = [
   { id: 2, name: 'Jane Smith', mobile: '+91 9876543211', image: '/images/Profile.svg' },
 ];
 
+interface NavBarProps {
+  className?: string;
+}
+
 const GiveCreditPage = () => {
   const [requestType, setRequestType] = useState('saved');
   const [selectedProfile, setSelectedProfile] = useState<number | null>(null);
@@ -51,7 +55,9 @@ const GiveCreditPage = () => {
   const [loanTerm, setLoanTerm] = useState('');
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [selectedLender, setSelectedLender] = useState('ABC Finance');
+  const [selectedProtectionPlan, setSelectedProtectionPlan] = useState('free');
   const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     setWindowSize({
@@ -101,16 +107,41 @@ const GiveCreditPage = () => {
     }
   };
 
+  const handleProtectionPlanSelect = (plan: string) => {
+    setSelectedProtectionPlan(plan);
+    handleFinalSubmit();
+  };
+
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
+    setIsSubmitting(true);
+  };
+
+  const handleFinalSubmit = () => {
     // Handle loan request submission logic here
+    const submissionData = {
+      loanAmount,
+      interestRate,
+      paymentType,
+      emiFrequency,
+      loanTerm,
+      timeUnit,
+      selectedLender,
+      protectionPlan: selectedProtectionPlan,
+    };
+    console.log('Submitting loan request:', submissionData);
     setShowSuccessMessage(true);
+    setIsSubmitting(false);
   };
 
   if (showSuccessMessage) {
     return (
       <div className="flex flex-col h-screen bg-gradient-to-br from-white via-pink-50 to-purple-50">
-        <GiveCreditAppBar />
+        <GiveCreditAppBar 
+          loanAmount={Number(loanAmount) || 0}
+          onProtectionPlanSelect={handleProtectionPlanSelect}
+          isSubmitting={isSubmitting}
+        />
         <ReactConfetti
           width={windowSize.width}
           height={windowSize.height}
@@ -189,7 +220,11 @@ const GiveCreditPage = () => {
 
   return (
     <div className="flex flex-col h-screen bg-gradient-to-br from-white via-pink-50 to-purple-50">
-      <GiveCreditAppBar />
+      <GiveCreditAppBar 
+        loanAmount={Number(loanAmount) || 0}
+        onProtectionPlanSelect={handleProtectionPlanSelect}
+        isSubmitting={isSubmitting}
+      />
       <main className="flex-1 overflow-y-auto pt-14">
         <div className="max-w-4xl mx-auto w-full p-6 pb-24">
           {!showLoanForm ? (
@@ -425,6 +460,29 @@ const GiveCreditPage = () => {
                         </div>
                       </Grid>
                     )}
+
+                    <Grid item xs={12}>
+                      <Typography variant="subtitle2" className="mb-2 text-gray-700">
+                        Protection Plan
+                      </Typography>
+                      <RadioGroup
+                        row
+                        value={selectedProtectionPlan}
+                        onChange={(e) => handleProtectionPlanSelect(e.target.value)}
+                        className="space-x-4"
+                      >
+                        <FormControlLabel
+                          value="free"
+                          control={<Radio sx={{ color: '#A2195E', '&.Mui-checked': { color: '#A2195E' } }} />}
+                          label="Free"
+                        />
+                        <FormControlLabel
+                          value="premium"
+                          control={<Radio sx={{ color: '#A2195E', '&.Mui-checked': { color: '#A2195E' } }} />}
+                          label="Premium"
+                        />
+                      </RadioGroup>
+                    </Grid>
 
                     <Grid item xs={12}>
                       <Button
