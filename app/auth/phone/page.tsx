@@ -2,19 +2,18 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
+import { RecaptchaVerifier, signInWithPhoneNumber, Auth } from "firebase/auth";
 import { auth } from "../../../lib/firebase";
 import Image from 'next/image';
-
 // Country codes data
 const countryCodes = [
-  { code: '+91', country: 'India', flag: '🇮🇳' },
-  { code: '+1', country: 'USA', flag: '🇺🇸' },
-  { code: '+1', country: 'Canada', flag: '🇨🇦' },
-  { code: '+44', country: 'UK', flag: '🇬🇧' },
-  { code: '+61', country: 'Australia', flag: '🇦🇺' },
-  { code: '+65', country: 'Singapore', flag: '🇸🇬' },
-  { code: '+971', country: 'UAE', flag: '🇦🇪' },
+  { id: 'IN', code: '91', flag: '🇮🇳'},
+  { id: 'US', code: '1', flag: '🇺🇸'},
+  { id: 'CA', code: '1', flag: '🇨🇦'},
+  { id: 'GB', code: '44', flag: '🇬🇧'},
+  { id: 'AU', code: '61', flag: '🇦🇺'},
+  { id: 'SG', code: '65', flag: '🇸🇬', country: 'Singapore' },
+  { id: 'AE', code: '971', flag: '🇦🇪', country: 'UAE' },
 ];
 
 export default function PhoneAuthPage() {
@@ -26,13 +25,26 @@ export default function PhoneAuthPage() {
   const [confirmationResult, setConfirmationResult] = useState<any>(null);
   const [selectedCountry, setSelectedCountry] = useState(countryCodes[0]);
   const [showCountryList, setShowCountryList] = useState(false);
+  const [otpValue, setOtpValue] = useState("");
 
   const setupRecaptcha = () => {
+    // Ensure the recaptcha-container exists in the DOM
+    const containerId = 'recaptcha-container';
     if (!(window as any).recaptchaVerifier) {
-      (window as any).recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-        size: 'invisible',
-        callback: () => {},
-      });
+      const container = document.getElementById(containerId);
+      if (container) {
+        (window as any).recaptchaVerifier = new RecaptchaVerifier(auth, containerId, {
+          size: 'invisible', // or 'normal'
+          callback: () => {
+            console.log('Recaptcha solved!');
+          },
+          'expired-callback': () => {
+            console.log('Recaptcha expired');
+          },
+        });
+      } else {
+        console.error(`Element with ID ${containerId} not found.`);
+      }
     }
   };
 
@@ -42,11 +54,15 @@ export default function PhoneAuthPage() {
       setError("");
       
       setupRecaptcha();
-      const formattedPhone = selectedCountry.code + phone;
+      const formattedPhone = `+${selectedCountry.code}${phone.replace(/\s+/g, '')}`;
+      const appVerifier = (window as any).recaptchaVerifier;
+
+      console.log('Attempting sign in with:', formattedPhone);
+
       const confirmation = await signInWithPhoneNumber(
         auth,
         formattedPhone,
-        (window as any).recaptchaVerifier
+        appVerifier
       );
       
       setConfirmationResult(confirmation);
@@ -163,19 +179,20 @@ export default function PhoneAuthPage() {
                         
                         {/* Country Dropdown */}
                         {showCountryList && (
-                          <div className="absolute top-full left-0 mt-1 w-48 bg-white rounded-xl shadow-lg border border-neutral-100 py-1 z-50">
+                          <div className="absolute top-full left-0 mt-1 w-full bg-white border rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto">
                             {countryCodes.map((country) => (
-                              <button
-                                key={country.code}
-                                className="w-full px-4 py-2 text-left hover:bg-neutral-50 flex items-center gap-3 transition-colors"
-                                onClick={() => handleCountrySelect(country)}
+                              <div
+                                key={country.id}
+                                className="px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2"
+                                onClick={() => {
+                                  setSelectedCountry(country);
+                                  setShowCountryList(false);
+                                }}
                               >
-                                <span className="text-lg">{country.flag}</span>
-                                <div>
-                                  <p className="text-sm font-medium text-neutral-800">{country.country}</p>
-                                  <p className="text-xs text-neutral-500">{country.code}</p>
-                                </div>
-                              </button>
+                                <span>{country.flag}</span>
+                                <span>{country.country}</span>
+                                <span className="text-gray-500">+{country.code}</span>
+                              </div>
                             ))}
                           </div>
                         )}
@@ -202,32 +219,49 @@ export default function PhoneAuthPage() {
                     </label>
                     <div className="relative">
                       <input
-                        type="number"
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
                         id="otp"
-                        value={''}
-                        onChange={(e) => handleOTPVerification(e.target.value)}
+                        value={otpValue}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+                          setOtpValue(value);
+                        }}
                         placeholder="Enter 6-digit OTP"
                         className="w-full px-4 py-3 rounded-xl border border-neutral-200 focus:border-pink-500 focus:ring focus:ring-pink-200 transition-all duration-300 text-neutral-800 placeholder-neutral-400"
                         maxLength={6}
                       />
                       <button 
+                        type="button"
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-medium text-pink-600 hover:text-pink-700"
-                        onClick={() => setShowOTP(false)}
+                        onClick={() => {
+                          setShowOTP(false);
+                          setOtpValue("");
+                        }}
                       >
                         Change Number
                       </button>
                     </div>
                     <p className="mt-2 text-sm text-neutral-500">
-                      Didn't receive the code? <button className="text-pink-600 hover:text-pink-700 font-medium">Resend OTP</button>
+                      Didn't receive the code? <button type="button" className="text-pink-600 hover:text-pink-700 font-medium">Resend OTP</button>
                     </p>
                   </div>
                 )}
 
                 <button
-                  onClick={!showOTP ? handleSendOTP : undefined}
-                  disabled={(!isValidPhoneNumber && !showOTP) || loading}
+                  onClick={() => {
+                    if (showOTP) {
+                      if (otpValue.length === 6) {
+                        handleOTPVerification(otpValue);
+                      }
+                    } else {
+                      handleSendOTP();
+                    }
+                  }}
+                  disabled={((!isValidPhoneNumber && !showOTP) || (showOTP && otpValue.length !== 6)) || loading}
                   className={`w-full py-3.5 px-4 rounded-xl font-medium transition-all duration-300 ${
-                    (isValidPhoneNumber || showOTP) && !loading
+                    ((isValidPhoneNumber && !showOTP) || (showOTP && otpValue.length === 6)) && !loading
                       ? 'bg-gradient-to-r from-pink-600 to-pink-500 text-white hover:from-pink-700 hover:to-pink-600 active:scale-[0.98] shadow-sm'
                       : 'bg-neutral-100 text-neutral-400 cursor-not-allowed'
                   }`}
@@ -270,6 +304,7 @@ export default function PhoneAuthPage() {
           </div>
         </div>
       </main>
+      <div id="recaptcha-container"></div>
     </div>
   );
 }
