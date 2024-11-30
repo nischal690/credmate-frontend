@@ -3,8 +3,6 @@
 import React, { useRef, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Camera, FlipHorizontal2Icon as FlipCameraIos } from 'lucide-react'
-import SearchProfileAppBar from '../components/SearchProfileAppBar'
-import NavBar from '../components/NavBar'
 import { loadFaceDetectionModels, detectSingleFace } from '../utils/face-detection'
 import { savePhotoToStorage } from '../utils/storage'
 import type { CameraState } from '../types/camera'
@@ -128,9 +126,7 @@ export default function CameraPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
-      <SearchProfileAppBar />
-      
+    <div className="min-h-screen bg-gray-900 flex flex-col">
       <main className="flex-1 flex flex-col items-center justify-center bg-gray-900 p-4">
         <div className="w-full max-w-md relative">
           {/* Camera frame with better styling */}
@@ -200,8 +196,6 @@ export default function CameraPage() {
           )}
         </div>
       </main>
-      
-      <NavBar />
     </div>
   )
 }
