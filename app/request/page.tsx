@@ -200,317 +200,417 @@ const RequestLoanPage = () => {
 
   if (!showLoanForm) {
     return (
-      <div className="flex flex-col min-h-screen bg-white">
+      <div className="flex flex-col min-h-screen bg-gradient-to-br from-white via-pink-50 to-purple-50">
         <RequestLoanAppBar />
-        
-        <main className="flex-1 overflow-y-auto">
-          <div className="px-6 pt-20 pb-24 bg-gradient-to-br from-white to-pink-50 min-h-full">
-            <div className="max-w-md mx-auto">
-              <Typography variant="h6" sx={{ mb: 2, color: '#333333' }}>
-                Request loan from
-              </Typography>
-
-              <RadioGroup value={requestType} onChange={handleRequestTypeChange}>
-                <FormControlLabel 
-                  value="saved" 
-                  control={<Radio sx={{ color: '#A2195E', '&.Mui-checked': { color: '#A2195E' } }} />} 
-                  label="Select from saved profiles" 
-                />
-                
-                {requestType === 'saved' && (
-                  <Box sx={{ ml: 4, mb: 3 }}>
-                    {savedProfiles.map((profile) => (
-                      <Box
-                        key={profile.id}
-                        onClick={() => handleProfileSelect(profile.id)}
-                        sx={{
-                          p: 2,
-                          mb: 1,
-                          borderRadius: 3,
-                          border: '1px solid',
-                          borderColor: selectedProfile === profile.id ? '#A2195E' : '#E5E5E5',
-                          backgroundColor: selectedProfile === profile.id ? '#FFF6F9' : 'white',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 2,
-                        }}
-                      >
-                        <div className="w-10 h-10 rounded-full bg-pink-50 flex items-center justify-center">
+        <main className="flex-1 overflow-y-auto pt-20 pb-24 px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="max-w-lg mx-auto"
+          >
+            <div className="bg-white rounded-3xl shadow-lg p-6 mb-6">
+              <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">Request a Loan</h2>
+              
+              <RadioGroup
+                value={requestType}
+                onChange={handleRequestTypeChange}
+                className="mb-6"
+              >
+                <div className="grid grid-cols-2 gap-4">
+                  <motion.div whileTap={{ scale: 0.98 }}>
+                    <FormControlLabel
+                      value="saved"
+                      control={<Radio />}
+                      label={
+                        <div className="flex flex-col items-center p-4 bg-pink-50 rounded-xl cursor-pointer transition-all hover:bg-pink-100">
                           <Image
-                            src={profile.image}
-                            alt={profile.name}
-                            width={24}
-                            height={24}
+                            src="/images/saved-profiles.svg"
+                            alt="Saved Profiles"
+                            width={48}
+                            height={48}
+                            className="mb-2"
                           />
+                          <span className="font-medium text-gray-800">Saved Profiles</span>
                         </div>
-                        <div>
-                          <Typography sx={{ fontWeight: 500 }}>{profile.name}</Typography>
-                          <Typography variant="body2" sx={{ color: '#666666' }}>{profile.mobile}</Typography>
+                      }
+                      className="m-0 w-full"
+                    />
+                  </motion.div>
+                  
+                  <motion.div whileTap={{ scale: 0.98 }}>
+                    <FormControlLabel
+                      value="new"
+                      control={<Radio />}
+                      label={
+                        <div className="flex flex-col items-center p-4 bg-pink-50 rounded-xl cursor-pointer transition-all hover:bg-pink-100">
+                          <Image
+                            src="/images/new-profile.svg"
+                            alt="New Profile"
+                            width={48}
+                            height={48}
+                            className="mb-2"
+                          />
+                          <span className="font-medium text-gray-800">New Profile</span>
                         </div>
-                      </Box>
-                    ))}
-                  </Box>
-                )}
+                      }
+                      className="m-0 w-full"
+                    />
+                  </motion.div>
+                </div>
+              </RadioGroup>
 
-                <FormControlLabel 
-                  value="new" 
-                  control={<Radio sx={{ color: '#A2195E', '&.Mui-checked': { color: '#A2195E' } }} />} 
-                  label="Enter mobile number" 
-                />
-
-                {requestType === 'new' && (
-                  <Box sx={{ ml: 4, mb: 3 }}>
+              <AnimatePresence mode="wait">
+                {requestType === 'saved' ? (
+                  <motion.div
+                    key="saved"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                  >
+                    <div className="space-y-4">
+                      {savedProfiles.map((profile) => (
+                        <motion.div
+                          key={profile.id}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => handleProfileSelect(profile.id)}
+                          className={`p-4 rounded-xl border-2 transition-all cursor-pointer ${
+                            selectedProfile === profile.id
+                              ? 'border-pink-500 bg-pink-50'
+                              : 'border-gray-200 hover:border-pink-200'
+                          }`}
+                        >
+                          <div className="flex items-center space-x-4">
+                            <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-100">
+                              <Image
+                                src={profile.image}
+                                alt={profile.name}
+                                width={48}
+                                height={48}
+                                className="object-cover"
+                              />
+                            </div>
+                            <div>
+                              <h3 className="font-semibold text-gray-800">{profile.name}</h3>
+                              <p className="text-sm text-gray-500">{profile.mobile}</p>
+                            </div>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="new"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                  >
                     <StyledTextField
                       fullWidth
                       label="Mobile Number"
+                      variant="outlined"
                       value={mobileNumber}
-                      onChange={(e) => setMobileNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                      type="tel"
-                      InputProps={{
-                        startAdornment: <span style={{ marginRight: 8, color: '#666666' }}>+91</span>,
-                      }}
+                      onChange={(e) => setMobileNumber(e.target.value)}
+                      placeholder="Enter 10-digit number"
+                      inputProps={{ maxLength: 10 }}
+                      className="mb-4"
                     />
-                  </Box>
+                    <div className="bg-blue-50 rounded-xl p-4 mb-4">
+                      <div className="flex items-start space-x-3">
+                        <div className="p-2 bg-blue-100 rounded-lg">
+                          <Image
+                            src="/images/info-icon.svg"
+                            alt="Info"
+                            width={20}
+                            height={20}
+                          />
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-blue-800">New to Credmate?</h4>
+                          <p className="text-sm text-blue-600">We'll create a new profile for you after verification</p>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
                 )}
-              </RadioGroup>
+              </AnimatePresence>
 
-              <Button
-                fullWidth
-                variant="contained"
-                size="large"
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={handleContinue}
-                disabled={(requestType === 'saved' && !selectedProfile) || (requestType === 'new' && mobileNumber.length !== 10)}
-                sx={{
-                  mt: 2,
-                  height: '56px',
-                  borderRadius: '12px',
-                  backgroundColor: '#A2195E',
-                  textTransform: 'none',
-                  fontSize: '1rem',
-                  fontWeight: 600,
-                  '&:hover': {
-                    backgroundColor: '#8B1550',
-                  },
-                  '&.Mui-disabled': {
-                    backgroundColor: '#E5E5E5',
-                  },
-                }}
+                disabled={!(requestType === 'saved' && selectedProfile) && !(requestType === 'new' && mobileNumber.length === 10)}
+                className={`w-full py-4 rounded-xl font-semibold text-white transition-all
+                  ${(requestType === 'saved' && selectedProfile) || (requestType === 'new' && mobileNumber.length === 10)
+                    ? 'bg-pink-600 hover:bg-pink-700'
+                    : 'bg-gray-300 cursor-not-allowed'
+                  }`}
               >
                 Continue
-              </Button>
+              </motion.button>
             </div>
-          </div>
-        </main>
 
+            <div className="bg-gradient-to-r from-pink-50 to-purple-50 rounded-3xl p-6">
+              <h3 className="font-semibold text-gray-800 mb-4">Why Choose Credmate?</h3>
+              <div className="space-y-4">
+                {[
+                  { title: 'Quick Approval', desc: 'Get loan approval within 24 hours' },
+                  { title: 'Competitive Rates', desc: 'Best-in-class interest rates from verified lenders' },
+                  { title: 'Secure Process', desc: 'End-to-end encrypted loan processing' }
+                ].map((item, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className="flex items-start space-x-3"
+                  >
+                    <div className="w-6 h-6 rounded-full bg-pink-200 flex items-center justify-center flex-shrink-0">
+                      <span className="text-pink-700 text-sm">✓</span>
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-gray-800">{item.title}</h4>
+                      <p className="text-sm text-gray-600">{item.desc}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        </main>
         <NavBar />
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-white">
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-white via-pink-50 to-purple-50">
       <RequestLoanAppBar />
-      
-      <main className="flex-1 overflow-y-auto">
-        <div className="px-6 pt-20 pb-24 bg-gradient-to-br from-white to-pink-50 min-h-full">
-          <div className="max-w-md mx-auto">
-            <Box sx={{ mb: 3, p: 2, backgroundColor: '#FFF6F9', borderRadius: 3 }}>
-              <Typography variant="subtitle1" sx={{ color: '#666666' }}>
-                Requesting loan from:
-              </Typography>
-              <Typography variant="body1" sx={{ color: '#A2195E', fontWeight: 500 }}>
-                {requestType === 'saved' 
-                  ? savedProfiles.find(p => p.id === selectedProfile)?.name
-                  : `+91 ${mobileNumber}`
-                }
-              </Typography>
-            </Box>
+      <main className="flex-1 overflow-y-auto pt-20 pb-24 px-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="max-w-lg mx-auto"
+        >
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="bg-white rounded-3xl shadow-lg p-6">
+              <h2 className="text-2xl font-bold text-gray-800 mb-6">Loan Details</h2>
+              
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Loan Amount
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                      <span className="text-gray-500">₹</span>
+                    </div>
+                    <StyledTextField
+                      fullWidth
+                      type="number"
+                      value={loanAmount}
+                      onChange={(e) => setLoanAmount(e.target.value)}
+                      placeholder="Enter amount"
+                      InputProps={{
+                        startAdornment: <span className="text-gray-500 mr-2">₹</span>,
+                      }}
+                      className="mb-1"
+                    />
+                  </div>
+                  <p className="text-sm text-gray-500 mt-1">Min: ₹1,000 | Max: ₹10,00,000</p>
+                </div>
 
-            <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
-              <Grid container spacing={2.5}>
-                <Grid item xs={12}>
-                  <Typography variant="subtitle1" sx={{ mb: 0.5, color: '#666666', fontSize: '0.875rem' }}>
-                    How much would you like to borrow?
-                  </Typography>
-                  <StyledTextField
-                    required
-                    fullWidth
-                    label="Loan Amount"
-                    type="number"
-                    value={loanAmount}
-                    onChange={(e) => setLoanAmount(e.target.value)}
-                    InputProps={{ 
-                      inputProps: { min: 0 },
-                      startAdornment: <span style={{ marginRight: 8, color: '#666666' }}>₹</span>
-                    }}
-                  />
-                </Grid>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Loan Term
+                    </label>
+                    <StyledTextField
+                      fullWidth
+                      type="number"
+                      value={loanTerm}
+                      onChange={(e) => setLoanTerm(e.target.value)}
+                      placeholder="Duration"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Time Unit
+                    </label>
+                    <Select
+                      value={timeUnit}
+                      onChange={(e) => setTimeUnit(e.target.value)}
+                      className="w-full rounded-xl"
+                      sx={{
+                        borderRadius: '12px',
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: '#E5E5E5',
+                        },
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: '#A2195E',
+                        },
+                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                          borderColor: '#A2195E',
+                        },
+                      }}
+                    >
+                      <MenuItem value="month">Months</MenuItem>
+                      <MenuItem value="year">Years</MenuItem>
+                      <MenuItem value="day">Days</MenuItem>
+                    </Select>
+                  </div>
+                </div>
 
-                <Grid item xs={12}>
-                  <Typography variant="subtitle1" sx={{ mb: 0.5, color: '#666666', fontSize: '0.875rem' }}>
-                    What interest rate are you willing to pay?
-                  </Typography>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Interest Rate (% per annum)
+                  </label>
                   <StyledTextField
-                    required
                     fullWidth
-                    label="Interest Rate"
                     type="number"
                     value={interestRate}
                     onChange={(e) => setInterestRate(e.target.value)}
-                    InputProps={{ 
-                      inputProps: { min: 0, max: 100, step: 0.1 },
-                      endAdornment: <span style={{ marginLeft: 8, color: '#666666' }}>%</span>
+                    placeholder="Enter interest rate"
+                    InputProps={{
+                      endAdornment: <span className="text-gray-500">%</span>,
                     }}
                   />
-                </Grid>
+                </div>
 
-                <Grid item xs={12}>
-                  <Typography variant="subtitle1" sx={{ mb: 0.5, color: '#666666', fontSize: '0.875rem' }}>
-                    For how long?
-                  </Typography>
-                  <Grid container spacing={2}>
-                    <Grid item xs={8}>
-                      <StyledTextField
-                        required
-                        fullWidth
-                        label="Loan Term"
-                        type="number"
-                        value={loanTerm}
-                        onChange={(e) => setLoanTerm(e.target.value)}
-                        InputProps={{ 
-                          inputProps: { min: 1 }
-                        }}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-4">
+                    Payment Type
+                  </label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <motion.div whileTap={{ scale: 0.98 }}>
+                      <FormControlLabel
+                        value="onetime"
+                        control={
+                          <Radio
+                            checked={paymentType === 'onetime'}
+                            onChange={(e) => setPaymentType(e.target.value)}
+                          />
+                        }
+                        label={
+                          <div className={`flex flex-col items-center p-4 rounded-xl cursor-pointer transition-all
+                            ${paymentType === 'onetime' ? 'bg-pink-50' : 'bg-gray-50 hover:bg-gray-100'}`}
+                          >
+                            <Image
+                              src="/images/onetime-payment.svg"
+                              alt="One-time Payment"
+                              width={32}
+                              height={32}
+                              className="mb-2"
+                            />
+                            <span className="font-medium text-sm text-gray-800">One-time Payment</span>
+                          </div>
+                        }
+                        className="m-0 w-full"
                       />
-                    </Grid>
-                    <Grid item xs={4}>
-                      <Select
-                        value={timeUnit}
-                        onChange={(e) => setTimeUnit(e.target.value)}
-                        fullWidth
-                        sx={{
-                          height: '56px',
-                          borderRadius: '12px',
-                          backgroundColor: '#F9F9F9',
-                          '& .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#E5E5E5',
-                          },
-                          '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#A2195E',
-                          },
-                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#A2195E',
-                          }
-                        }}
-                      >
-                        <MenuItem value="day">Days</MenuItem>
-                        <MenuItem value="month">Months</MenuItem>
-                        <MenuItem value="year">Years</MenuItem>
-                      </Select>
-                    </Grid>
-                  </Grid>
-                </Grid>
+                    </motion.div>
 
-                <Grid item xs={12}>
-                  <Typography variant="subtitle1" sx={{ mb: 0.5, color: '#666666', fontSize: '0.875rem' }}>
-                    How would you like to repay?
-                  </Typography>
-                  <RadioGroup
-                    value={paymentType}
-                    onChange={(e) => setPaymentType(e.target.value)}
-                    sx={{ mb: 2 }}
+                    <motion.div whileTap={{ scale: 0.98 }}>
+                      <FormControlLabel
+                        value="emi"
+                        control={
+                          <Radio
+                            checked={paymentType === 'emi'}
+                            onChange={(e) => setPaymentType(e.target.value)}
+                          />
+                        }
+                        label={
+                          <div className={`flex flex-col items-center p-4 rounded-xl cursor-pointer transition-all
+                            ${paymentType === 'emi' ? 'bg-pink-50' : 'bg-gray-50 hover:bg-gray-100'}`}
+                          >
+                            <Image
+                              src="/images/emi-payment.svg"
+                              alt="EMI"
+                              width={32}
+                              height={32}
+                              className="mb-2"
+                            />
+                            <span className="font-medium text-sm text-gray-800">EMI</span>
+                          </div>
+                        }
+                        className="m-0 w-full"
+                      />
+                    </motion.div>
+                  </div>
+                </div>
+
+                {paymentType === 'emi' && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
                   >
-                    <FormControlLabel 
-                      value="onetime" 
-                      control={<Radio sx={{ color: '#A2195E', '&.Mui-checked': { color: '#A2195E' } }} />} 
-                      label="One-time payment" 
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      EMI Frequency
+                    </label>
+                    <Select
+                      value={emiFrequency}
+                      onChange={(e) => setEmiFrequency(e.target.value as string)}
+                      className="w-full rounded-xl"
+                      sx={{
+                        borderRadius: '12px',
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: '#E5E5E5',
+                        },
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: '#A2195E',
+                        },
+                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                          borderColor: '#A2195E',
+                        },
+                      }}
+                    >
+                      <MenuItem value="daily">Daily</MenuItem>
+                      <MenuItem value="weekly">Weekly</MenuItem>
+                      <MenuItem value="monthly">Monthly</MenuItem>
+                    </Select>
+                  </motion.div>
+                )}
+              </div>
+            </div>
+
+            {/* EMI Calculator Result */}
+            {paymentType === 'emi' && emiAmount > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-gradient-to-r from-pink-600 to-purple-600 rounded-3xl p-6 text-white"
+              >
+                <h3 className="text-lg font-semibold mb-2">EMI Calculator</h3>
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="text-sm opacity-90">Estimated EMI Amount</p>
+                    <p className="text-2xl font-bold">₹{emiAmount.toFixed(2)}</p>
+                  </div>
+                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                    <Image
+                      src="/images/calculator.svg"
+                      alt="Calculator"
+                      width={24}
+                      height={24}
                     />
-                    <FormControlLabel 
-                      value="installment" 
-                      control={<Radio sx={{ color: '#A2195E', '&.Mui-checked': { color: '#A2195E' } }} />} 
-                      label="Pay in installments (EMI)" 
-                    />
-                  </RadioGroup>
+                  </div>
+                </div>
+              </motion.div>
+            )}
 
-                  {paymentType === 'installment' && (
-                    <Box sx={{ ml: 4, mb: 2 }}>
-                      <Typography variant="subtitle2" sx={{ mb: 1, color: '#666666' }}>
-                        Select EMI frequency:
-                      </Typography>
-                      <RadioGroup
-                        value={emiFrequency}
-                        onChange={(e) => setEmiFrequency(e.target.value)}
-                      >
-                        <FormControlLabel 
-                          value="daily" 
-                          control={<Radio sx={{ color: '#A2195E', '&.Mui-checked': { color: '#A2195E' } }} />} 
-                          label="Daily" 
-                        />
-                        <FormControlLabel 
-                          value="monthly" 
-                          control={<Radio sx={{ color: '#A2195E', '&.Mui-checked': { color: '#A2195E' } }} />} 
-                          label="Monthly" 
-                        />
-                      </RadioGroup>
-
-                      {emiAmount > 0 && (
-                        <Box sx={{ mt: 2, p: 2, backgroundColor: '#FFF6F9', borderRadius: 2 }}>
-                          <Typography variant="subtitle2" sx={{ color: '#A2195E', fontWeight: 500 }}>
-                            Estimated {emiFrequency} EMI:
-                          </Typography>
-                          <Typography variant="h6" sx={{ color: '#A2195E', fontWeight: 600 }}>
-                            ₹{emiAmount.toFixed(2)}
-                          </Typography>
-                          <Typography variant="caption" sx={{ color: '#666666' }}>
-                            *This is an approximate calculation based on the provided interest rate
-                          </Typography>
-                        </Box>
-                      )}
-                    </Box>
-                  )}
-                </Grid>
-
-                <Grid item xs={12}>
-                  <Typography variant="subtitle1" sx={{ mb: 0.5, color: '#666666', fontSize: '0.875rem' }}>
-                    What&apos;s this loan for?
-                  </Typography>
-                  <StyledTextField
-                    required
-                    fullWidth
-                    label="Purpose of Loan"
-                    multiline
-                    rows={3}
-                  />
-                </Grid>
-
-                <Grid item xs={12}>
-                  <Button
-                    type="submit"
-                    fullWidth
-                    variant="contained"
-                    size="large"
-                    sx={{
-                      mt: 2,
-                      height: '56px',
-                      borderRadius: '12px',
-                      backgroundColor: '#A2195E',
-                      textTransform: 'none',
-                      fontSize: '1rem',
-                      fontWeight: 600,
-                      '&:hover': {
-                        backgroundColor: '#8B1550',
-                      },
-                    }}
-                  >
-                    Submit Loan Request
-                  </Button>
-                </Grid>
-              </Grid>
-            </Box>
-          </div>
-        </div>
+            {/* Submit Button */}
+            <motion.button
+              type="submit"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="w-full py-4 bg-pink-600 text-white rounded-xl font-semibold hover:bg-pink-700 transition-colors"
+            >
+              Submit Request
+            </motion.button>
+          </form>
+        </motion.div>
       </main>
-
       <NavBar />
     </div>
   );
