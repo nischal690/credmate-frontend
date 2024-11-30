@@ -131,11 +131,12 @@ export default function PhoneAuthPage() {
           <div className="max-w-md mx-auto pt-12">
             <div className="flex flex-col items-center mb-12">
               <Image
-                src="/images/logo 1 (6).svg"
+                src="/images/logo 1 (6).png"
                 alt="Credmate Logo"
                 width={200}
                 height={53}
                 className="w-[200px] h-[53px] mb-4"
+                priority
               />
               <h2 className="text-2xl font-bold bg-gradient-to-r from-pink-700 via-pink-500 to-pink-600 bg-clip-text text-transparent">
                 Your Credit Journey Starts Here
@@ -209,7 +210,7 @@ export default function PhoneAuthPage() {
                       />
                     </div>
                     <p className="mt-2 text-sm text-neutral-500">
-                      We'll send you a one-time verification code
+                      We&apos;ll send you a one-time verification code
                     </p>
                   </div>
                 ) : (
@@ -244,7 +245,7 @@ export default function PhoneAuthPage() {
                       </button>
                     </div>
                     <p className="mt-2 text-sm text-neutral-500">
-                      Didn't receive the code? <button type="button" className="text-pink-600 hover:text-pink-700 font-medium">Resend OTP</button>
+                      Didn&apos;t receive the code? <button type="button" className="text-pink-600 hover:text-pink-700 font-medium">Resend OTP</button>
                     </p>
                   </div>
                 )}

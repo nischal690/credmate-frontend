@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import Image from "next/image";
 import { useState } from "react";
 import Drawer from '@mui/material/Drawer';
@@ -19,7 +20,6 @@ import LockIcon from '@mui/icons-material/Lock';
 import ShareIcon from '@mui/icons-material/Share';
 import CurrencyRupeeIcon from '@mui/icons-material/CurrencyRupee';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useRouter } from 'next/navigation';
 
 export default function AppBar() {
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -39,7 +39,7 @@ export default function AppBar() {
   };
 
   const handleNotifications = () => {
-    console.log('Notifications clicked');
+    router.push('/notifications');
   };
 
   const handleUpgradeClick = () => {
