@@ -8,9 +8,6 @@ import { ChevronRight } from 'lucide-react';
 export default function CreditMetricsGrid() {
   const router = useRouter();
 
-  const handleSearchProfileClick = () => {
-    router.push('/search-profile');
-  };
   const handleRequestLoan = () => {
     router.push('/request');
   }
@@ -19,7 +16,7 @@ export default function CreditMetricsGrid() {
   }
 
   const metrics = [
-    { title: 'Search Profile', image: '/images/Frame.svg', onClick: handleSearchProfileClick },
+    { title: 'Report Borrower', image: '/images/Frame.svg', onClick: () => {} },
     { title: 'Request Credit', image: '/images/Frame (1).svg' , onClick: handleRequestLoan },
     { title: 'Give Credit', image: '/images/Frame (2).svg', onClick: handleApproveLoan },
   ];

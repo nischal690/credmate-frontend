@@ -25,17 +25,17 @@ export default function NavBar() {
               <span className="text-xs font-medium">Home</span>
             </Link>
 
-            <Link href="/table-rows" className={`flex flex-col items-center gap-1 transition-all duration-300 ${pathname === '/table-rows' ? 'text-pink-600 scale-105' : 'text-neutral-400 hover:text-pink-600'}`}>
+            <Link href="/search-profile" className={`flex flex-col items-center gap-1 transition-all duration-300 ${pathname === '/search-profile' ? 'text-pink-600 scale-105' : 'text-neutral-400 hover:text-pink-600'}`}>
               <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-pink-50 to-white flex items-center justify-center shadow-sm">
                 <Image
                   src="/images/Loans.svg"
-                  alt="Loans"
+                  alt="Search Profile"
                   width={24}
                   height={24}
-                  className={pathname === '/table-rows' ? 'opacity-100' : 'opacity-70'}
+                  className={pathname === '/search-profile' ? 'opacity-100' : 'opacity-70'}
                 />
               </div>
-              <span className="text-xs font-medium">Loans</span>
+              <span className="text-xs font-medium">Search Profile</span>
             </Link>
 
             <Link href="/history" className={`flex flex-col items-center gap-1 transition-all duration-300 ${pathname === '/history' ? 'text-pink-600 scale-105' : 'text-neutral-400 hover:text-pink-600'}`}>
