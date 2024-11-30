@@ -15,13 +15,13 @@ export default function CreditMetricsGrid() {
     router.push('/request');
   }
   const handleApproveLoan = () => {
-    router.push('/approve-loan');
+    router.push('/give-credit');
   }
 
   const metrics = [
     { title: 'Search Profile', image: '/images/Frame.svg', onClick: handleSearchProfileClick },
-    { title: 'Request Loan', image: '/images/Frame (1).svg' , onClick: handleRequestLoan },
-    { title: 'Approve Loan', image: '/images/Frame (2).svg', onClick: handleApproveLoan },
+    { title: 'Request Credit', image: '/images/Frame (1).svg' , onClick: handleRequestLoan },
+    { title: 'Give Credit', image: '/images/Frame (2).svg', onClick: handleApproveLoan },
   ];
 
   return (

@@ -4,7 +4,7 @@ import React from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 
-export default function RequestLoanAppBar() {
+export default function GivenCreditAppBar() {
   const router = useRouter();
 
   const handleBackClick = () => {
@@ -26,7 +26,7 @@ export default function RequestLoanAppBar() {
           />
         </div>
         <div className="flex-1 text-center">
-          <span style={{ fontSize: '17px' }}>Request Credit</span>
+          <span style={{ fontSize: '17px' }}>Given Credit</span>
         </div>
         <div className="w-[34px]"></div> {/* Empty div for balance */}
       </div>

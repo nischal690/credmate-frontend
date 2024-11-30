@@ -26,7 +26,7 @@ export default function ApproveLoanAppBar() {
           />
         </div>
         <div className="flex-1 text-center">
-          <span style={{ fontSize: '17px' }}>Approve Loan</span>
+          <span style={{ fontSize: '17px' }}>Give Credit</span>
         </div>
         <div className="w-[34px]"></div> {/* Empty div for balance */}
       </div>
