@@ -12,7 +12,7 @@ export default function CreditMetricsGrid() {
     router.push('/search-profile');
   };
   const handleRequestLoan = () => {
-    router.push('/request-loan');
+    router.push('/request');
   }
   const handleApproveLoan = () => {
     router.push('/approve-loan');
