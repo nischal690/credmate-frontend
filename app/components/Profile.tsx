@@ -125,22 +125,22 @@ export default function Profile() {
             </div>
 
             {/* Quick Info Section */}
-            <div className="grid grid-cols-2 gap-4 mb-8">
-              <div className="flex items-center space-x-2 text-gray-600">
-                <LocationOnIcon className="text-pink-500" />
-                <span className="text-sm">{profileData.address}</span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+              <div className="flex items-center space-x-2 text-gray-600 overflow-hidden">
+                <LocationOnIcon className="text-pink-500 flex-shrink-0" />
+                <span className="text-sm truncate">{profileData.address}</span>
               </div>
-              <div className="flex items-center space-x-2 text-gray-600">
-                <EmailIcon className="text-pink-500" />
-                <span className="text-sm">{profileData.email}</span>
+              <div className="flex items-center space-x-2 text-gray-600 overflow-hidden">
+                <EmailIcon className="text-pink-500 flex-shrink-0" />
+                <span className="text-sm truncate">{profileData.email}</span>
               </div>
-              <div className="flex items-center space-x-2 text-gray-600">
-                <PhoneIcon className="text-pink-500" />
-                <span className="text-sm">{profileData.phone}</span>
+              <div className="flex items-center space-x-2 text-gray-600 overflow-hidden">
+                <PhoneIcon className="text-pink-500 flex-shrink-0" />
+                <span className="text-sm truncate">{profileData.phone}</span>
               </div>
-              <div className="flex items-center space-x-2 text-gray-600">
-                <PersonIcon className="text-pink-500" />
-                <span className="text-sm">Active Member</span>
+              <div className="flex items-center space-x-2 text-gray-600 overflow-hidden">
+                <PersonIcon className="text-pink-500 flex-shrink-0" />
+                <span className="text-sm truncate">Active Member</span>
               </div>
             </div>
 

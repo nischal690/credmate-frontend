@@ -30,7 +30,7 @@ export default function RecentActivity() {
 
   return (
     <section className="recent-activity-section mt-[-20px] px-5">
-      <h2 className="font-['Gilroy-Medium'] font-normal text-base leading-[135%] tracking-[0.01em] text-[#555555] mb-4">
+      <h2 className="font-['Gilroy-Medium'] font-bold text-base leading-[135%] tracking-[0.01em] text-[#555555] mb-4">
         Recent Activity
       </h2>
       <div className="activity-list space-y-1"> {/* Reduced gap between activity cards */}
@@ -68,4 +68,3 @@ export default function RecentActivity() {
     </section>
   );
 }
-

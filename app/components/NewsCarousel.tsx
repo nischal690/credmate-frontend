@@ -24,30 +24,45 @@ export default function NewsCarousel() {
   }, [])
 
   return (
-    <div className="w-full max-w-md mx-auto p-4">
-      <div className="bg-pink-50 rounded-2xl p-3 relative">
-        <div className="flex items-start gap-2">
-          <LightbulbIcon className="w-4 h-4 text-[#A2195E] mt-0.5 flex-shrink-0" />
-          <p className="text-[#A2195E] text-xs flex-1 pr-4">
+    <div className="w-full mx-auto p-4">
+      <motion.div 
+        className="bg-gradient-to-r from-pink-50 to-pink-100 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow duration-300"
+        whileHover={{ scale: 1.01 }}
+        transition={{ duration: 0.2 }}
+      >
+        <div className="flex items-center gap-3">
+          <div className="bg-pink-200 p-2 rounded-lg">
+            <LightbulbIcon className="w-5 h-5 text-[#A2195E]" />
+          </div>
+          <motion.p 
+            key={currentIndex}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="text-[#A2195E] text-sm md:text-base font-medium flex-1 pr-4 leading-relaxed"
+          >
             {newsItems[currentIndex]}
-          </p>
-          <ChevronRightIcon className="w-4 h-4 text-[#A2195E] flex-shrink-0" />
+          </motion.p>
+          <div className="bg-pink-200 p-2 rounded-lg cursor-pointer hover:bg-pink-300 transition-colors duration-200"
+               onClick={() => setCurrentIndex((prevIndex) => prevIndex === newsItems.length - 1 ? 0 : prevIndex + 1)}>
+            <ChevronRightIcon className="w-5 h-5 text-[#A2195E]" />
+          </div>
         </div>
         
-        <div className="flex justify-center items-center gap-1.5 mt-2">
+        <div className="flex justify-center items-center gap-2 mt-3">
           {newsItems.map((_, index) => (
             <button
               key={index}
               onClick={() => setCurrentIndex(index)}
-              className="relative"
+              className="relative focus:outline-none"
               aria-label={`Go to slide ${index + 1}`}
             >
               <motion.div
-                className={`h-1.5 rounded-full ${
-                  currentIndex === index ? 'bg-[#A2195E]' : 'bg-[#A3A3A3]'
+                className={`h-2 rounded-full ${
+                  currentIndex === index ? 'bg-[#A2195E]' : 'bg-pink-200'
                 }`}
                 animate={{
-                  width: currentIndex === index ? '16px' : '6px',
+                  width: currentIndex === index ? '20px' : '8px',
                 }}
                 transition={{
                   duration: 0.3,
@@ -60,8 +75,7 @@ export default function NewsCarousel() {
             </button>
           ))}
         </div>
-      </div>
+      </motion.div>
     </div>
   )
 }
-

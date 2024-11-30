@@ -1,7 +1,5 @@
 'use client';
 
-import AppBar from '../components/AppBar';
-import NavBar from '../components/NavBar';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import StarIcon from '@mui/icons-material/Star';
@@ -76,9 +74,7 @@ export default function UpgradePage() {
     : plans.filter(plan => plan.type === planType);
 
   return (
-    <div className="flex flex-col min-h-screen bg-white">
-      <AppBar />
-      
+    <div className="min-h-screen bg-white">
       <main className="flex-1 overflow-y-auto">
         <motion.div 
           ref={containerRef}
@@ -336,8 +332,6 @@ export default function UpgradePage() {
           </div>
         </motion.div>
       </main>
-
-      <NavBar />
     </div>
   );
 }

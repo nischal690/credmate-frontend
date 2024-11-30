@@ -12,8 +12,8 @@ const countryCodes = [
   { id: 'CA', code: '1', flag: '🇨🇦'},
   { id: 'GB', code: '44', flag: '🇬🇧'},
   { id: 'AU', code: '61', flag: '🇦🇺'},
-  { id: 'SG', code: '65', flag: '🇸🇬', country: 'Singapore' },
-  { id: 'AE', code: '971', flag: '🇦🇪', country: 'UAE' },
+  { id: 'SG', code: '65', flag: '🇸🇬',  },
+  { id: 'AE', code: '971', flag: '🇦🇪',  },
 ];
 
 export default function PhoneAuthPage() {
@@ -131,7 +131,7 @@ export default function PhoneAuthPage() {
           <div className="max-w-md mx-auto pt-12">
             <div className="flex flex-col items-center mb-12">
               <Image
-                src="/images/logo 1 (6).png"
+                src="/images/logo.svg"
                 alt="Credmate Logo"
                 width={200}
                 height={53}
@@ -191,7 +191,7 @@ export default function PhoneAuthPage() {
                                 }}
                               >
                                 <span>{country.flag}</span>
-                                <span>{country.country}</span>
+                                
                                 <span className="text-gray-500">+{country.code}</span>
                               </div>
                             ))}

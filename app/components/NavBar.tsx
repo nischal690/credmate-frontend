@@ -4,11 +4,15 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
-export default function NavBar() {
+interface NavBarProps {
+  className?: string;
+}
+
+export default function NavBar({ className }: NavBarProps) {
   const pathname = usePathname();
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50">
+    <div className={`fixed bottom-0 left-0 right-0 z-50 ${className || ''}`}>
       <div className="bg-white/80 backdrop-blur-lg border-t border-neutral-100">
         <div className="max-w-md mx-auto px-6 h-20">
           <div className="flex justify-between items-center h-full">

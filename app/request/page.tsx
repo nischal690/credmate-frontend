@@ -472,7 +472,7 @@ const RequestLoanPage = () => {
 
                 <Grid item xs={12}>
                   <Typography variant="subtitle1" sx={{ mb: 0.5, color: '#666666', fontSize: '0.875rem' }}>
-                    What's this loan for?
+                    What&apos;s this loan for?
                   </Typography>
                   <StyledTextField
                     required
