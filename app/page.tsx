@@ -6,10 +6,12 @@ import NewsCarousel from './components/NewsCarousel';
 import CreditScoreContainer from './components/CreditScoreContainer';
 import RecentActivity from './components/RecentActivity';
 import NavBar from './components/NavBar';
+import PDFViewer from './components/PDFViewer';
 import { auth } from '../lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import apiService from './lib/api/apiService';
 import { API_ENDPOINTS } from './lib/api/config';
+
 
 export default function Home() {
   // useEffect(() => {
@@ -61,6 +63,7 @@ export default function Home() {
             <NewsCarousel />
             <CreditScoreContainer />
             <RecentActivity />
+            <PDFViewer />
           </div>
         </div>
       </main>
