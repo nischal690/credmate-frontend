@@ -40,25 +40,26 @@ export default function GiveCreditAppBar({ loanAmount, onProtectionPlanSelect, i
 
   return (
     <>
-      <div className="fixed top-0 left-0 right-0 bg-white z-10 border-b border-gray-200">
-        <div className="flex items-center justify-between w-full px-4 h-14">
-          <div 
-            className="w-[34px] h-[34px] bg-[#F4F4F4] rounded-full flex items-center justify-center cursor-pointer"
-            onClick={handleBackClick}
-          >
-            <Image
-              src="/images/searchprofileicons/arrowbendleft.svg"
-              alt="Back Icon"
-              width={24} 
-              height={24}
-            />
-          </div>
-          <div className="flex-1 text-center">
-            <span className="text-[17px] font-medium">Give Credit</span>
+      <div className="bg-gradient-to-r from-[#A2195E] to-[#8B1550] p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={handleBackClick}
+              className="text-white hover:opacity-80 transition-opacity"
+            >
+              <Image
+                src="/images/searchprofileicons/arrowbendleft.svg"
+                alt="Back Icon"
+                width={24} 
+                height={24}
+                className="invert"
+              />
+            </button>
+            <span className="text-white text-lg font-medium">Give Credit</span>
           </div>
           <button
             onClick={handleSubmitCredit}
-            className="px-4 py-2 bg-[#A2195E] text-white rounded-lg text-sm font-medium"
+            className="px-4 py-2 bg-white text-[#A2195E] rounded-lg text-sm font-medium hover:bg-opacity-90 transition-opacity"
           >
             Submit
           </button>

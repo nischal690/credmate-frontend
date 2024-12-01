@@ -6,6 +6,7 @@ import NewsCarousel from './components/NewsCarousel';
 import CreditScoreContainer from './components/CreditScoreContainer';
 import RecentActivity from './components/RecentActivity';
 import NavBar from './components/NavBar';
+import LoanApplication from './components/LoanApplication';
 import { auth } from '../lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import apiService from './lib/api/apiService';
@@ -60,6 +61,7 @@ export default function Home() {
           <div className="max-w-md mx-auto">
             <NewsCarousel />
             <CreditScoreContainer />
+            <LoanApplication />
             <RecentActivity />
           </div>
         </div>

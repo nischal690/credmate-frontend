@@ -14,9 +14,12 @@ export default function CreditMetricsGrid() {
   const handleApproveLoan = () => {
     router.push('/give-credit');
   }
+  const handleReportBorrower = () => {
+    router.push('/report-borrower');
+  }
 
   const metrics = [
-    { title: 'Report Borrower', image: '/images/Frame.svg', onClick: () => {} },
+    { title: 'Report Borrower', image: '/images/Frame.svg', onClick: handleReportBorrower },
     { title: 'Request Credit', image: '/images/Frame (1).svg' , onClick: handleRequestLoan },
     { title: 'Give Credit', image: '/images/Frame (2).svg', onClick: handleApproveLoan },
   ];
