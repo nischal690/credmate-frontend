@@ -1,10 +1,12 @@
 'use client'
 
+
 import React, { useRef, useState, useCallback } from 'react'
+import NavBar from "../components/NavBar";
 import SignatureCanvas from 'react-signature-canvas'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { Undo, Redo, X } from 'lucide-react'
+import { Undo, Redo, X, Check } from 'lucide-react'
 
 export default function SignaturePad() {
   const router = useRouter()
@@ -13,19 +15,24 @@ export default function SignaturePad() {
   const [redoStack, setRedoStack] = useState<string[]>([])
   const [signature, setSignature] = useState<string | null>(null)
 
-  const saveSignature = useCallback(() => {
-    if (signatureRef.current) {
+  const handleBegin = () => {
+    setHistory([])
+    setRedoStack([])
+  }
+
+  const handleEnd = () => {
+    if (signatureRef.current && !signatureRef.current.isEmpty()) {
       const dataURL = signatureRef.current.toDataURL()
       setHistory(prev => [...prev, dataURL])
       setRedoStack([])
       setSignature(dataURL)
     }
-  }, [])
+  }
 
   const handleClear = () => {
     if (signatureRef.current) {
       signatureRef.current.clear()
-      saveSignature()
+      setSignature(null)
     }
   }
 
@@ -56,24 +63,15 @@ export default function SignaturePad() {
     }
   }
 
-  const handleEnd = () => {
-    if (signatureRef.current && !signatureRef.current.isEmpty()) {
-      const dataURL = signatureRef.current.toDataURL()
-      setHistory(prev => [...prev, dataURL])
-      setRedoStack([])
-      setSignature(dataURL)
-    }
-  }
-
   const handleConfirm = () => {
     if (signature) {
-      // Pass the signature as a query parameter
-      router.push(`/place-signature?signature=${encodeURIComponent(signature)}`);
+      localStorage.setItem('signature', signature)
+      console.log('Signature saved to local storage')
+      router.push('/place-signature')
     } else {
-      console.error('No signature found');
+      console.error('No signature found')
     }
-  };
-  
+  }
 
   const handleBackClick = () => {
     router.back()
@@ -101,53 +99,57 @@ export default function SignaturePad() {
       </div>
 
       {/* Main Content */}
-      <main className="flex-1 pt-16 px-4 pb-24 max-w-md mx-auto w-full">
-        <div className="bg-white rounded-xl border border-pink-100 overflow-hidden shadow-sm">
+      <main className="flex-1 pt-16 pb-16 px-4 max-w-md mx-auto w-full">
+        <div className="bg-white rounded-xl border border-pink-100 overflow-hidden shadow-sm h-[75vh]">
           <SignatureCanvas
             ref={signatureRef}
             canvasProps={{
-              className: 'w-full h-[70vh] border-b border-pink-100',
+              className: 'w-full h-full border-b border-pink-100',
+              style: {
+                aspectRatio: '9/16',
+                touchAction: 'none'
+              }
             }}
+            onBegin={handleBegin}
             onEnd={handleEnd}
           />
-          <div className="p-4 flex justify-between">
-            <button
-              onClick={handleUndo}
-              disabled={history.length <= 0}
-              className="p-2 bg-pink-100 rounded-full text-pink-700 disabled:opacity-50"
-            >
-              <Undo size={20} />
-            </button>
-            <button
-              onClick={handleRedo}
-              disabled={redoStack.length === 0}
-              className="p-2 bg-pink-100 rounded-full text-pink-700 disabled:opacity-50"
-            >
-              <Redo size={20} />
-            </button>
-            <button
-              onClick={handleClear}
-              className="p-2 bg-pink-100 rounded-full text-pink-700"
-            >
-              <X size={20} />
-            </button>
-          </div>
         </div>
+      </main>
 
-        {/* Confirm Button */}
-        <div className="mt-6">
+      {/* Bottom Action Buttons - moved up more */}
+      <div className="fixed bottom-24 left-0 right-0 px-4">
+        <div className="max-w-md mx-auto flex items-center justify-center gap-4">
+          <button
+            onClick={handleUndo}
+            disabled={history.length <= 0}
+            className="w-11 h-11 bg-white rounded-full text-pink-700 disabled:opacity-50 hover:bg-pink-50 transition-colors shadow-md flex items-center justify-center"
+          >
+            <Undo size={18} />
+          </button>
+          <button
+            onClick={handleRedo}
+            disabled={redoStack.length === 0}
+            className="w-11 h-11 bg-white rounded-full text-pink-700 disabled:opacity-50 hover:bg-pink-50 transition-colors shadow-md flex items-center justify-center"
+          >
+            <Redo size={18} />
+          </button>
+          <button
+            onClick={handleClear}
+            className="w-11 h-11 bg-white rounded-full text-pink-700 hover:bg-pink-50 transition-colors shadow-md flex items-center justify-center"
+          >
+            <X size={18} />
+          </button>
           <button
             onClick={handleConfirm}
             disabled={!signature}
-            className="w-full bg-gradient-to-r from-pink-700 to-pink-500 text-white py-3 px-6 rounded-xl font-medium
-                     disabled:opacity-50 disabled:cursor-not-allowed
-                     hover:from-pink-800 hover:to-pink-600 transition-all duration-300
-                     focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2"
+            className="w-11 h-11 bg-pink-600 rounded-full text-white disabled:opacity-50 hover:bg-pink-700 transition-colors shadow-md flex items-center justify-center"
           >
-            Confirm Signature
+            <Check size={18} />
           </button>
         </div>
-      </main>
+      </div>
+
+      <NavBar />
     </div>
   )
 }

@@ -10,7 +10,7 @@ import 'react-pdf/dist/esm/Page/TextLayer.css'
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`
 
-const PDF_FILE = '/pdfs/sample.pdf'
+const PDF_FILE = '/sample.pdf'
 
 export default function PlaceSignature() {
   const router = useRouter()
@@ -25,12 +25,28 @@ export default function PlaceSignature() {
   const [isRotating, setIsRotating] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const signatureRef = useRef<HTMLDivElement>(null)
+  const rotationStartAngle = useRef<number>(0)
 
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search)
-    const signatureParam = urlParams.get('signature')
-    if (signatureParam) {
-      setSignature(decodeURIComponent(signatureParam))
+    // Retrieve the signature from local storage
+    const storedSignature = localStorage.getItem('signature')
+    if (storedSignature) {
+      setSignature(storedSignature)
+    }
+
+    const handleGlobalMouseUp = () => {
+      setIsDragging(false)
+      setIsResizing(false)
+      setIsRotating(false)
+    }
+
+    // Add global event listeners to handle mouse actions outside the container
+    document.addEventListener('mouseup', handleGlobalMouseUp)
+    document.addEventListener('mousemove', handleMouseMove)
+
+    return () => {
+      document.removeEventListener('mouseup', handleGlobalMouseUp)
+      document.removeEventListener('mousemove', handleMouseMove)
     }
   }, [])
 
@@ -44,33 +60,25 @@ export default function PlaceSignature() {
     }
   }
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleMouseMove = (e: MouseEvent) => {
     if (isDragging && containerRef.current && signatureRef.current) {
       const containerRect = containerRef.current.getBoundingClientRect()
-      const signatureRect = signatureRef.current.getBoundingClientRect()
-      const newX = e.clientX - containerRect.left - signatureRect.width / 2
-      const newY = e.clientY - containerRect.top - signatureRect.height / 2
-      setPosition({ x: newX, y: newY })
-    } else if (isResizing && containerRef.current && signatureRef.current) {
+      const newX = e.clientX - containerRect.left - size.width / 2
+      const newY = e.clientY - containerRect.top - size.height / 2
+      setPosition({ x: Math.max(newX, 0), y: Math.max(newY, 0) })
+    } else if (isResizing && containerRef.current) {
       const containerRect = containerRef.current.getBoundingClientRect()
-      const signatureRect = signatureRef.current.getBoundingClientRect()
-      const newWidth = e.clientX - containerRect.left - signatureRect.left
-      const newHeight = e.clientY - containerRect.top - signatureRect.top
-      setSize({ width: newWidth, height: newHeight })
+      const newWidth = e.clientX - containerRect.left - position.x
+      const newHeight = e.clientY - containerRect.top - position.y
+      setSize({ width: Math.max(newWidth, 50), height: Math.max(newHeight, 50) }) // Minimum size
     } else if (isRotating && containerRef.current && signatureRef.current) {
       const containerRect = containerRef.current.getBoundingClientRect()
-      const signatureRect = signatureRef.current.getBoundingClientRect()
-      const centerX = signatureRect.left + signatureRect.width / 2 - containerRect.left
-      const centerY = signatureRect.top + signatureRect.height / 2 - containerRect.top
+      const centerX = position.x + size.width / 2
+      const centerY = position.y + size.height / 2
       const angle = Math.atan2(e.clientY - containerRect.top - centerY, e.clientX - containerRect.left - centerX)
-      setRotation(angle * (180 / Math.PI))
+      const angleInDegrees = angle * (180 / Math.PI)
+      setRotation(angleInDegrees - rotationStartAngle.current)
     }
-  }
-
-  const handleMouseUp = () => {
-    setIsDragging(false)
-    setIsResizing(false)
-    setIsRotating(false)
   }
 
   const handleResizeStart = (e: React.MouseEvent) => {
@@ -80,11 +88,20 @@ export default function PlaceSignature() {
 
   const handleRotateStart = (e: React.MouseEvent) => {
     e.stopPropagation()
+    const containerRect = containerRef.current?.getBoundingClientRect()
+    if (containerRect) {
+      const centerX = position.x + size.width / 2
+      const centerY = position.y + size.height / 2
+      const angle = Math.atan2(
+        e.clientY - containerRect.top - centerY,
+        e.clientX - containerRect.left - centerX
+      )
+      rotationStartAngle.current = angle * (180 / Math.PI)
+    }
     setIsRotating(true)
   }
 
   const handleConfirm = () => {
-    // Here you would typically save the signature position and apply it to all PDF pages
     console.log('Signature placed:', { position, size, rotation })
     router.push('/request-loan/confirmation')
   }
@@ -95,8 +112,8 @@ export default function PlaceSignature() {
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-white to-pink-50">
-      {/* App Bar */}
       <div className="fixed top-0 left-0 right-0 bg-white border-b border-pink-100 px-4 py-3 z-50">
+        {/* App Bar */}
         <div className="flex items-center justify-between max-w-md mx-auto">
           <button
             onClick={handleBackClick}
@@ -116,91 +133,79 @@ export default function PlaceSignature() {
 
       {/* Main Content */}
       <main className="flex-1 pt-16 px-4 pb-24 max-w-md mx-auto w-full">
-        <div className="bg-white rounded-xl border border-pink-100 overflow-hidden shadow-sm">
-          <div 
-            className="h-[60vh] overflow-auto relative" 
-            ref={containerRef} 
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseUp}
+        <div
+          ref={containerRef}
+          className="h-[70vh] w-[90%] max-w-md mx-auto overflow-auto relative border border-pink-100 rounded-lg bg-white"
+        >
+          <Document
+            file={PDF_FILE}
+            onLoadSuccess={onDocumentLoadSuccess}
+            className="flex flex-col items-center"
           >
-            <Document
-              file={PDF_FILE}
-              onLoadSuccess={onDocumentLoadSuccess}
-              className="flex flex-col items-center"
+            <Page pageNumber={pageNumber} width={300} />
+          </Document>
+          {signature && (
+            <div
+              ref={signatureRef}
+              style={{
+                position: 'absolute',
+                left: `${position.x}px`,
+                top: `${position.y}px`,
+                width: `${size.width}px`,
+                height: `${size.height}px`,
+                transform: `rotate(${rotation}deg)`,
+                cursor: isDragging ? 'grabbing' : 'grab',
+                border: '1px solid pink',
+              }}
+              onMouseDown={handleMouseDown}
             >
-              <Page pageNumber={pageNumber} width={300} />
-            </Document>
-            {signature && (
-              <div
-                ref={signatureRef}
+              <img
+                src={signature}
+                alt="Signature"
                 style={{
-                  position: 'absolute',
-                  left: `${position.x}px`,
-                  top: `${position.y}px`,
-                  width: `${size.width}px`,
-                  height: `${size.height}px`,
-                  transform: `rotate(${rotation}deg)`,
-                  cursor: isDragging ? 'grabbing' : 'grab',
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'contain',
                 }}
-                onMouseDown={handleMouseDown}
-              >
-                <img
-                  src={signature}
-                  alt="Signature"
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'contain',
-                  }}
-                  draggable={false}
-                />
-                <div
-                  className="absolute bottom-0 right-0 w-4 h-4 bg-pink-500 cursor-se-resize"
-                  onMouseDown={handleResizeStart}
-                />
-                <div
-                  className="absolute top-0 left-0 w-4 h-4 bg-pink-500 cursor-move rounded-full"
-                  onMouseDown={handleRotateStart}
-                />
-              </div>
-            )}
-          </div>
-          <div className="p-4 border-t border-pink-100 flex justify-between items-center">
-            <button
-              onClick={() => setPageNumber(page => Math.max(page - 1, 1))}
-              disabled={pageNumber <= 1}
-              className="px-3 py-1 bg-pink-100 rounded-md text-pink-700 disabled:opacity-50"
-            >
-              Previous
-            </button>
-            <p className="text-sm text-neutral-600">
-              Page {pageNumber} of {numPages}
-            </p>
-            <button
-              onClick={() => setPageNumber(page => Math.min(page + 1, numPages || 1))}
-              disabled={pageNumber >= (numPages || 1)}
-              className="px-3 py-1 bg-pink-100 rounded-md text-pink-700 disabled:opacity-50"
-            >
-              Next
-            </button>
-          </div>
+                draggable={false}
+              />
+              <div
+                className="absolute bottom-0 right-0 w-4 h-4 bg-pink-500 cursor-se-resize"
+                onMouseDown={handleResizeStart}
+              />
+              <div
+                className="absolute top-0 left-0 w-4 h-4 bg-pink-500 cursor-pointer rounded-full"
+                onMouseDown={handleRotateStart}
+              />
+            </div>
+          )}
         </div>
-
-        {/* Confirm Button */}
-        <div className="mt-6">
+        <div className="p-4 flex justify-between items-center">
           <button
-            onClick={handleConfirm}
-            className="w-full bg-gradient-to-r from-pink-700 to-pink-500 text-white py-3 px-6 rounded-xl font-medium
-                     hover:from-pink-800 hover:to-pink-600 transition-all duration-300
-                     focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2"
+            onClick={() => setPageNumber((page) => Math.max(page - 1, 1))}
+            disabled={pageNumber <= 1}
+            className="px-3 py-1 bg-pink-100 rounded-md text-pink-700 disabled:opacity-50"
           >
-            <Check className="inline-block mr-2" size={20} />
-            Confirm Placement
+            Previous
+          </button>
+          <p className="text-sm text-neutral-600">
+            Page {pageNumber} of {numPages}
+          </p>
+          <button
+            onClick={() => setPageNumber((page) => Math.min(page + 1, numPages || 1))}
+            disabled={pageNumber >= (numPages || 1)}
+            className="px-3 py-1 bg-pink-100 rounded-md text-pink-700 disabled:opacity-50"
+          >
+            Next
           </button>
         </div>
+        <button
+          onClick={handleConfirm}
+          className="mt-4 w-full py-2 bg-pink-500 text-white rounded-md shadow-md hover:bg-pink-600"
+        >
+          Confirm Signature <Check className="inline ml-2" />
+        </button>
       </main>
     </div>
   )
 }
-

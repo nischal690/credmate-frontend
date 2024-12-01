@@ -1,47 +1,122 @@
+'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Document, Page, pdfjs } from 'react-pdf'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
+import { Loader2, ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from 'lucide-react'
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css'
 import 'react-pdf/dist/esm/Page/TextLayer.css'
 
 // Initialize PDF.js worker
-pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-  'pdfjs-dist/build/pdf.worker.min.js',
-  import.meta.url,
-).toString()
+if (typeof window !== 'undefined') {
+  console.log('Initializing PDF.js worker with version:', pdfjs.version)
+  pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`
+}
 
-// Using a reliable sample PDF URL
-const PDF_URL = 'https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/examples/learning/helloworld.pdf'
+// Change the PDF_URL to use the API endpoint
+const PDF_URL = '/api/pdf'  // Changed from '/sample.pdf' to '/api/pdf'
+console.log('PDF_URL:', PDF_URL)
 
 export default function PDFViewer() {
   const router = useRouter()
   const [numPages, setNumPages] = useState<number | null>(null)
   const [pageNumber, setPageNumber] = useState(1)
+  const [scale, setScale] = useState(1)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
-    console.log('PDF loaded successfully:', numPages);
+  // Log initial state
+  useEffect(() => {
+    console.log('Component mounted')
+    console.log('Checking if PDF file exists...')
+    
+    // Add more detailed error logging
+    fetch(PDF_URL)
+      .then(async response => {
+        console.log('PDF fetch response:', response)
+        console.log('Response headers:', Object.fromEntries(response.headers))
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+        
+        // Check content type
+        const contentType = response.headers.get('content-type')
+        console.log('Content-Type:', contentType)
+        
+        // Try to read the response
+        const blob = await response.blob()
+        console.log('Blob size:', blob.size)
+        console.log('Blob type:', blob.type)
+        
+        console.log('PDF file is accessible')
+      })
+      .catch(error => {
+        console.error('Error checking PDF file:', error)
+      })
+  }, [])
+
+  const onDocumentLoadSuccess = useCallback(({ numPages }: { numPages: number }) => {
+    console.log('PDF loaded successfully with', numPages, 'pages')
     setNumPages(numPages)
     setIsLoading(false)
     setError(null)
-  }
+  }, [])
 
-  const onDocumentLoadError = (error: Error) => {
-    console.error('Error loading PDF:', error)
-    setError('Failed to load PDF. Please try again later.')
+  const onDocumentLoadError = useCallback((error: Error) => {
+    console.error('PDF load error:', error)
+    console.error('Error details:', {
+      message: error.message,
+      name: error.name,
+      stack: error.stack
+    })
+    setError('Failed to load PDF. Please check your internet connection and try again.')
     setIsLoading(false)
-  }
+  }, [])
 
-  const handleSignClick = () => {
+  const onDocumentLoadProgress = useCallback((progress: { loaded: number; total: number }) => {
+    console.log('Loading progress:', {
+      loaded: progress.loaded,
+      total: progress.total,
+      percentage: Math.round((progress.loaded / progress.total) * 100) + '%'
+    })
+  }, [])
+
+  // Log state changes
+  useEffect(() => {
+    console.log('State updated:', {
+      numPages,
+      pageNumber,
+      scale,
+      isLoading,
+      error
+    })
+  }, [numPages, pageNumber, scale, isLoading, error])
+
+  const handleSignClick = useCallback(() => {
     router.push('/signature')
-  }
+  }, [router])
 
-  const handleBackClick = () => {
+  const handleBackClick = useCallback(() => {
     router.back()
-  }
+  }, [router])
+
+  const handleZoomIn = useCallback(() => {
+    setScale(prevScale => Math.min(prevScale + 0.1, 2))
+  }, [])
+
+  const handleZoomOut = useCallback(() => {
+    setScale(prevScale => Math.max(prevScale - 0.1, 0.5))
+  }, [])
+
+  const handleNextPage = useCallback(() => {
+    setPageNumber(prevPage => Math.min(prevPage + 1, numPages || prevPage))
+  }, [numPages])
+
+  const handlePrevPage = useCallback(() => {
+    setPageNumber(prevPage => Math.max(prevPage - 1, 1))
+  }, [])
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-white to-pink-50">
@@ -66,70 +141,103 @@ export default function PDFViewer() {
 
       {/* Main Content */}
       <main className="flex-1 pt-16 px-4 pb-24 max-w-md mx-auto w-full">
-        {/* PDF Viewer */}
         <div className="bg-white rounded-xl border border-pink-100 overflow-hidden shadow-sm">
           <div className="h-[70vh] overflow-auto">
-            {isLoading && (
+            {isLoading ? (
               <div className="flex items-center justify-center h-full">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500"></div>
-                <p>Loading PDF...</p>
+                <Loader2 className="w-8 h-8 animate-spin text-pink-500 mr-2" />
+                <p>Loading PDF... {error && `(Error: ${error})`}</p>
               </div>
-            )}
-            {error ? (
-              <div className="flex items-center justify-center h-full text-red-500 px-4 text-center">
-                {error}
+            ) : error ? (
+              <div className="flex flex-col items-center justify-center h-full p-4">
+                <p className="text-red-500 text-center mb-4">{error}</p>
+                <button
+                  onClick={() => {
+                    console.log('Retrying PDF load...')
+                    window.location.reload()
+                  }}
+                  className="px-4 py-2 bg-pink-100 rounded-md text-pink-700 hover:bg-pink-200 transition-colors"
+                >
+                  Retry
+                </button>
               </div>
             ) : (
               <Document
                 file={PDF_URL}
-                onLoadSuccess={(data) => {
-                  console.log('Document loaded:', data);
-                  onDocumentLoadSuccess(data);
-                }}
+                onLoadSuccess={onDocumentLoadSuccess}
                 onLoadError={(error) => {
-                  console.error('Document load error:', error);
-                  onDocumentLoadError(error);
+                  console.error('Document load error:', error)
+                  console.error('Error details:', {
+                    message: error.message,
+                    name: error.name,
+                    stack: error.stack
+                  })
+                  onDocumentLoadError(error)
                 }}
-                loading={
-                  <div className="flex items-center justify-center h-full">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500"></div>
-                    <p>Loading PDF...</p>
-                  </div>
-                }
-                className="flex flex-col items-center"
+                options={{
+                  cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.4.120/cmaps/',
+                  cMapPacked: true,
+                  standardFontDataUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.4.120/standard_fonts/'
+                }}
               >
                 <Page 
                   pageNumber={pageNumber} 
-                  width={300}
+                  scale={scale}
                   loading={
                     <div className="flex items-center justify-center h-[200px]">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500"></div>
-                      <p>Loading page...</p>
+                      <Loader2 className="w-8 h-8 animate-spin text-pink-500 mr-2" />
+                      <p>Loading page {pageNumber}...</p>
                     </div>
                   }
+                  onRenderSuccess={() => console.log(`Page ${pageNumber} rendered successfully`)}
+                  onRenderError={(error) => console.error(`Error rendering page ${pageNumber}:`, error)}
+                  renderAnnotationLayer={false}
+                  renderTextLayer={false}
                 />
               </Document>
             )}
           </div>
           {!error && numPages && (
-            <div className="p-4 border-t border-pink-100 flex justify-between items-center">
-              <button
-                onClick={() => setPageNumber(page => Math.max(page - 1, 1))}
-                disabled={pageNumber <= 1}
-                className="px-3 py-1 bg-pink-100 rounded-md text-pink-700 disabled:opacity-50"
-              >
-                Previous
-              </button>
-              <p className="text-sm text-neutral-600">
-                Page {pageNumber} of {numPages}
-              </p>
-              <button
-                onClick={() => setPageNumber(page => Math.min(page + 1, numPages))}
-                disabled={pageNumber >= numPages}
-                className="px-3 py-1 bg-pink-100 rounded-md text-pink-700 disabled:opacity-50"
-              >
-                Next
-              </button>
+            <div className="p-4 border-t border-pink-100">
+              <div className="flex justify-between items-center mb-2">
+                <button
+                  onClick={handlePrevPage}
+                  disabled={pageNumber <= 1}
+                  className="p-2 bg-pink-100 rounded-md text-pink-700 disabled:opacity-50"
+                  aria-label="Previous page"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <p className="text-sm text-neutral-600">
+                  Page {pageNumber} of {numPages}
+                </p>
+                <button
+                  onClick={handleNextPage}
+                  disabled={pageNumber >= numPages}
+                  className="p-2 bg-pink-100 rounded-md text-pink-700 disabled:opacity-50"
+                  aria-label="Next page"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="flex justify-center gap-2">
+                <button
+                  onClick={handleZoomOut}
+                  disabled={scale <= 0.5}
+                  className="p-2 bg-pink-100 rounded-md text-pink-700 disabled:opacity-50"
+                  aria-label="Zoom out"
+                >
+                  <ZoomOut className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={handleZoomIn}
+                  disabled={scale >= 2}
+                  className="p-2 bg-pink-100 rounded-md text-pink-700 disabled:opacity-50"
+                  aria-label="Zoom in"
+                >
+                  <ZoomIn className="w-5 h-5" />
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -150,25 +258,22 @@ export default function PDFViewer() {
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-pink-100 px-6 py-3">
         <div className="max-w-md mx-auto flex items-center justify-between">
-          <button className="flex flex-col items-center gap-1">
-            <Image src="/images/searchprofileicons/home.svg" alt="Home" width={24} height={24} />
-            <span className="text-xs text-neutral-600">Home</span>
-          </button>
-          <button className="flex flex-col items-center gap-1">
-            <Image src="/images/searchprofileicons/loans.svg" alt="Loans" width={24} height={24} />
-            <span className="text-xs text-neutral-600">Loans</span>
-          </button>
-          <button className="flex flex-col items-center gap-1">
-            <Image src="/images/searchprofileicons/history.svg" alt="History" width={24} height={24} />
-            <span className="text-xs text-neutral-600">History</span>
-          </button>
-          <button className="flex flex-col items-center gap-1">
-            <Image src="/images/searchprofileicons/profile.svg" alt="Profile" width={24} height={24} />
-            <span className="text-xs text-neutral-600">Profile</span>
-          </button>
+          <NavButton icon="home" label="Home" />
+          <NavButton icon="loans" label="Loans" />
+          <NavButton icon="history" label="History" />
+          <NavButton icon="profile" label="Profile" />
         </div>
       </nav>
     </div>
+  )
+}
+
+function NavButton({ icon, label }: { icon: string; label: string }) {
+  return (
+    <button className="flex flex-col items-center gap-1">
+      <Image src={`/images/searchprofileicons/${icon}.svg`} alt={label} width={24} height={24} />
+      <span className="text-xs text-neutral-600">{label}</span>
+    </button>
   )
 }
 
