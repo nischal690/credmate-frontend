@@ -46,17 +46,22 @@ export default function PreviewPage() {
   return (
     <div className="flex flex-col h-screen bg-black">
       {/* Preview Image */}
-      <div className="flex-1 relative">
+      <div className="flex-1 relative w-full h-full max-h-[calc(100vh-120px)] overflow-hidden">
         <img
           src={imageData}
           alt="Captured"
           className="w-full h-full object-contain"
+          style={{
+            maxHeight: 'calc(100vh - 120px)',
+            objectFit: 'contain',
+            margin: '0 auto'
+          }}
         />
       </div>
       
       {/* Action Buttons */}
-      <div className="p-6 bg-black/10 backdrop-blur-sm">
-        <div className="max-w-md mx-auto space-y-4">
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-black/10 backdrop-blur-sm">
+        <div className="max-w-md mx-auto space-y-3">
           {/* Search Button */}
           <button
             onClick={handleSearch}

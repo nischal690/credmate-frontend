@@ -2,6 +2,9 @@
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
+  compiler: {
+    styledComponents: true,
+  },
   webpack: (config) => {
     config.resolve.alias.canvas = false;
     config.resolve.alias.encoding = false;
