@@ -12,8 +12,8 @@ const countryCodes = [
   { id: 'CA', code: '1', flag: '🇨🇦'},
   { id: 'GB', code: '44', flag: '🇬🇧'},
   { id: 'AU', code: '61', flag: '🇦🇺'},
-  { id: 'SG', code: '65', flag: '🇸🇬',  },
-  { id: 'AE', code: '971', flag: '🇦🇪',  },
+  { id: 'SG', code: '65', flag: '🇸🇬'},
+  { id: 'AE', code: '971', flag: '🇦🇪'},
 ];
 
 export default function PhoneAuthPage() {
@@ -135,15 +135,15 @@ export default function PhoneAuthPage() {
                 alt="Credmate Logo"
                 width={200}
                 height={53}
-                className="w-[200px] h-[53px] mb-4"
                 priority
+                className="w-[200px] h-[53px] mb-4"
               />
               <h2 className="text-2xl font-bold bg-gradient-to-r from-pink-700 via-pink-500 to-pink-600 bg-clip-text text-transparent">
                 Your Credit Journey Starts Here
               </h2>
             </div>
 
-            <div className="bg-white rounded-2xl shadow-sm p-8 border border-pink-100">
+            <div className="bg-white rounded-2xl shadow-sm p-8 border border-pink-100 max-w-sm">
               <h1 className="text-2xl font-bold text-neutral-800 mb-2 bg-gradient-to-r from-pink-700 to-pink-500 bg-clip-text text-transparent">
                 {showOTP ? "Verify OTP" : "Welcome Back"}
               </h1>
@@ -191,7 +191,7 @@ export default function PhoneAuthPage() {
                                 }}
                               >
                                 <span>{country.flag}</span>
-                                
+                                <span>{country.country}</span>
                                 <span className="text-gray-500">+{country.code}</span>
                               </div>
                             ))}
@@ -210,7 +210,7 @@ export default function PhoneAuthPage() {
                       />
                     </div>
                     <p className="mt-2 text-sm text-neutral-500">
-                      We&apos;ll send you a one-time verification code
+                      We'll send you a one-time verification code
                     </p>
                   </div>
                 ) : (
@@ -245,7 +245,7 @@ export default function PhoneAuthPage() {
                       </button>
                     </div>
                     <p className="mt-2 text-sm text-neutral-500">
-                      Didn&apos;t receive the code? <button type="button" className="text-pink-600 hover:text-pink-700 font-medium">Resend OTP</button>
+                      Didn't receive the code? <button type="button" className="text-pink-600 hover:text-pink-700 font-medium">Resend OTP</button>
                     </p>
                   </div>
                 )}
