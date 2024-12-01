@@ -88,43 +88,68 @@ export default function ReferralPage() {
           </motion.div>
 
           {/* How it Works Section */}
-          <div className="mt-10 mb-8">
-            <h2 className="text-xl font-bold mb-6">How it Works</h2>
-            <div className="space-y-6">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-8 mb-6"
+          >
+            <h2 className="text-xl font-bold mb-4 text-center">How it Works</h2>
+            <div className="space-y-3">
               {/* Step 1 */}
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-[#A2195E]/10 flex items-center justify-center shrink-0">
-                  <LinkIcon sx={{ fontSize: 24, color: '#A2195E' }} />
+              <motion.div 
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.2 }}
+                className="bg-gradient-to-br from-[#2D0A1F] to-[#1A0612] rounded-xl p-3 transform hover:scale-102 transition-transform"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[#A2195E]/10 flex items-center justify-center shrink-0">
+                    <LinkIcon sx={{ fontSize: 20, color: '#A2195E' }} />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-sm mb-0.5">Share your referral link</h3>
+                    <p className="text-white/70 text-xs">Share your unique referral link with friends and family.</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-semibold mb-1">Step 1: Share your referral link</h3>
-                  <p className="text-white/60">Share your unique referral link with friends and family who might be interested in Credmate's services.</p>
-                </div>
-              </div>
+              </motion.div>
 
               {/* Step 2 */}
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-[#A2195E]/10 flex items-center justify-center shrink-0">
-                  <PersonAddIcon sx={{ fontSize: 24, color: '#A2195E' }} />
+              <motion.div 
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.4 }}
+                className="bg-gradient-to-br from-[#2D0A1F] to-[#1A0612] rounded-xl p-3 transform hover:scale-102 transition-transform"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[#A2195E]/10 flex items-center justify-center shrink-0">
+                    <CardMembershipIcon sx={{ fontSize: 20, color: '#A2195E' }} />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-sm mb-0.5">Friend subscribes to a plan</h3>
+                    <p className="text-white/70 text-xs">When your friend signs up using your referral link.</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-semibold mb-1">Step 2: Friend subscribes to a plan</h3>
-                  <p className="text-white/60">When your friend signs up and subscribes to any of our plans using your referral link.</p>
-                </div>
-              </div>
+              </motion.div>
 
               {/* Step 3 */}
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-[#A2195E]/10 flex items-center justify-center shrink-0">
-                  <CardMembershipIcon sx={{ fontSize: 24, color: '#A2195E' }} />
+              <motion.div 
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.6 }}
+                className="bg-gradient-to-br from-[#2D0A1F] to-[#1A0612] rounded-xl p-3 transform hover:scale-102 transition-transform"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[#A2195E]/10 flex items-center justify-center shrink-0">
+                    <CurrencyRupeeIcon sx={{ fontSize: 20, color: '#A2195E' }} />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-sm mb-0.5">You earn rewards</h3>
+                    <p className="text-white/70 text-xs">Get exciting rewards for each successful referral.</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-semibold mb-1">Step 3: You earn rewards</h3>
-                  <p className="text-white/60">Get exciting rewards credited to your account for each successful referral.</p>
-                </div>
-              </div>
+              </motion.div>
             </div>
-          </div>
+          </motion.div>
 
           {/* Stats Section */}
           <motion.div 

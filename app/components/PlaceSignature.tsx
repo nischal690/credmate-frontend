@@ -7,12 +7,21 @@ import Image from 'next/image'
 import { Check } from 'lucide-react'
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css'
 import 'react-pdf/dist/esm/Page/TextLayer.css'
+import toast from 'react-hot-toast'
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`
 
-const PDF_FILE = '/sample.pdf'
+interface PlaceSignatureProps {
+  pdfUrl?: string;
+  onConfirm?: (data: { position: { x: number; y: number }; size: { width: number; height: number }; rotation: number }) => void;
+  redirectPath?: string;
+}
 
-export default function PlaceSignature() {
+export default function PlaceSignature({ 
+  pdfUrl = '/sample.pdf',
+  onConfirm,
+  redirectPath = '/request-loan/confirmation'
+}: PlaceSignatureProps) {
   const router = useRouter()
   const [numPages, setNumPages] = useState<number | null>(null)
   const [pageNumber, setPageNumber] = useState(1)
@@ -23,6 +32,8 @@ export default function PlaceSignature() {
   const [isDragging, setIsDragging] = useState(false)
   const [isResizing, setIsResizing] = useState(false)
   const [isRotating, setIsRotating] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const signatureRef = useRef<HTMLDivElement>(null)
   const rotationStartAngle = useRef<number>(0)
@@ -52,6 +63,14 @@ export default function PlaceSignature() {
 
   function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
     setNumPages(numPages)
+    setIsLoading(false)
+    setError(null)
+  }
+
+  function onDocumentLoadError(error: Error) {
+    console.error('Error loading PDF:', error)
+    setError('Failed to load PDF document. Please try again.')
+    setIsLoading(false)
   }
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -102,8 +121,19 @@ export default function PlaceSignature() {
   }
 
   const handleConfirm = () => {
-    console.log('Signature placed:', { position, size, rotation })
-    router.push('/request-loan/confirmation')
+    if (!signature) {
+      toast.error('No signature found. Please draw your signature first.')
+      return
+    }
+
+    const signatureData = { position, size, rotation }
+    
+    if (onConfirm) {
+      onConfirm(signatureData)
+    } else {
+      console.log('Signature placed:', signatureData)
+      router.push(redirectPath)
+    }
   }
 
   const handleBackClick = () => {
@@ -138,11 +168,29 @@ export default function PlaceSignature() {
           className="h-[70vh] w-[90%] max-w-md mx-auto overflow-auto relative border border-pink-100 rounded-lg bg-white"
         >
           <Document
-            file={PDF_FILE}
+            file={pdfUrl}
             onLoadSuccess={onDocumentLoadSuccess}
+            onLoadError={onDocumentLoadError}
             className="flex flex-col items-center"
           >
-            <Page pageNumber={pageNumber} width={300} />
+            {isLoading && (
+              <div className="flex items-center justify-center h-[300px]">
+                <div className="w-6 h-6 border-2 border-pink-500 border-t-transparent rounded-full animate-spin" />
+                <span className="ml-2 text-neutral-600">Loading PDF...</span>
+              </div>
+            )}
+            {error && (
+              <div className="flex flex-col items-center justify-center h-[300px] p-4">
+                <p className="text-red-500 text-center mb-4">{error}</p>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="px-4 py-2 bg-pink-100 rounded-md text-pink-700 hover:bg-pink-200 transition-colors"
+                >
+                  Retry
+                </button>
+              </div>
+            )}
+            {!isLoading && !error && <Page pageNumber={pageNumber} width={300} />}
           </Document>
           {signature && (
             <div
@@ -199,11 +247,13 @@ export default function PlaceSignature() {
             Next
           </button>
         </div>
+        {/* Confirm Button */}
         <button
           onClick={handleConfirm}
-          className="mt-4 w-full py-2 bg-pink-500 text-white rounded-md shadow-md hover:bg-pink-600"
+          disabled={!signature}
+          className="fixed bottom-6 right-6 w-12 h-12 rounded-full bg-pink-500 text-white flex items-center justify-center hover:bg-pink-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
         >
-          Confirm Signature <Check className="inline ml-2" />
+          <Check className="w-6 h-6" />
         </button>
       </main>
     </div>
