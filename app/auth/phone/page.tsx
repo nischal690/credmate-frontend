@@ -12,8 +12,8 @@ const countryCodes = [
   { id: 'CA', code: '1', flag: '🇨🇦'},
   { id: 'GB', code: '44', flag: '🇬🇧'},
   { id: 'AU', code: '61', flag: '🇦🇺'},
-  { id: 'SG', code: '65', flag: '🇸🇬', country: 'Singapore' },
-  { id: 'AE', code: '971', flag: '🇦🇪', country: 'UAE' },
+  { id: 'SG', code: '65', flag: '🇸🇬'},
+  { id: 'AE', code: '971', flag: '🇦🇪'},
 ];
 
 export default function PhoneAuthPage() {
@@ -131,10 +131,11 @@ export default function PhoneAuthPage() {
           <div className="max-w-md mx-auto pt-12">
             <div className="flex flex-col items-center mb-12">
               <Image
-                src="/images/logo 1 (6).svg"
+                src="/images/logo.svg"
                 alt="Credmate Logo"
                 width={200}
                 height={53}
+                priority
                 className="w-[200px] h-[53px] mb-4"
               />
               <h2 className="text-2xl font-bold bg-gradient-to-r from-pink-700 via-pink-500 to-pink-600 bg-clip-text text-transparent">
@@ -142,7 +143,7 @@ export default function PhoneAuthPage() {
               </h2>
             </div>
 
-            <div className="bg-white rounded-2xl shadow-sm p-8 border border-pink-100">
+            <div className="bg-white rounded-2xl shadow-sm p-8 border border-pink-100 max-w-sm">
               <h1 className="text-2xl font-bold text-neutral-800 mb-2 bg-gradient-to-r from-pink-700 to-pink-500 bg-clip-text text-transparent">
                 {showOTP ? "Verify OTP" : "Welcome Back"}
               </h1>
