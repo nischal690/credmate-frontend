@@ -7,17 +7,17 @@ const nextConfig = {
     if (!isServer) {
       config.resolve.fallback = {
         fs: false,
-        encoding: false,
         net: false,
         tls: false,
+        dns: false,
         canvas: false,
       }
     }
     return config
   },
   images: {
-    domains: ['firebasestorage.googleapis.com'],
-  },
-};
+    domains: ['images.unsplash.com']
+  }
+}
 
-module.exports = nextConfig;
+module.exports = nextConfig
