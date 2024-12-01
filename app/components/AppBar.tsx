@@ -19,6 +19,7 @@ import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
 import LockIcon from '@mui/icons-material/Lock';
 import ShareIcon from '@mui/icons-material/Share';
 import CurrencyRupeeIcon from '@mui/icons-material/CurrencyRupee';
+import BookmarkIcon from '@mui/icons-material/Bookmark';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function AppBar() {
@@ -52,8 +53,13 @@ export default function AppBar() {
     router.push('/referral'); // Navigate to referral page
   };
 
+  const handleSavedProfiles = () => {
+    setDrawerOpen(false); // Close the drawer
+    router.push('/saved-profiles'); // Navigate to saved profiles page
+  };
+
   const menuItems = [
-    { text: 'Settings', icon: <SettingsIcon />, onClick: () => console.log('Settings clicked'), color: '#CC1E77' },
+    { text: 'Saved Profiles', icon: <BookmarkIcon />, onClick: handleSavedProfiles, color: '#CC1E77' },
     { 
       text: 'Refer & Earn', 
       icon: <ShareIcon />, 
