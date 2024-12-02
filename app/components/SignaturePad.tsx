@@ -104,7 +104,10 @@ export default function SignaturePad() {
       const signature = strokes[strokes.length - 1] // Last stroke is the final signature
       localStorage.setItem('signature', signature)
       console.log('Signature saved to local storage')
-      router.push('/place-signature')
+      // Ensure the router push happens after saving
+      setTimeout(() => {
+        router.push('/place-signature')
+      }, 0);
     } else {
       console.error('No signature found')
     }

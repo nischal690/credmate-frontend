@@ -131,7 +131,7 @@ export default function PhoneAuthPage() {
           <div className="max-w-md mx-auto pt-12">
             <div className="flex flex-col items-center mb-12">
               <Image
-                src="/images/logo.svg"
+                src="/images/logoR.svg"
                 alt="Credmate Logo"
                 width={200}
                 height={53}
