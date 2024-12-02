@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { HelpCircle } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 interface CreditScoreGaugeProps {
   score?: number;
@@ -14,6 +15,7 @@ export default function CreditScoreGauge({
   maxScore = 1000,
   status = "Fair" 
 }: CreditScoreGaugeProps) {
+  const router = useRouter();
   const [currentScore, setCurrentScore] = useState(0);
   
   // Constants for the circular arc
@@ -53,6 +55,10 @@ export default function CreditScoreGauge({
     return 'Excellent';
   };
 
+  const handleClick = () => {
+    router.push('/credit-report');
+  };
+
   const pathColor = getPathColor(percentage);
   const currentStatus = getStatus(percentage);
 
@@ -63,7 +69,10 @@ export default function CreditScoreGauge({
   const sliderY = centerY + radius * Math.sin(radians);
 
   return (
-    <div className="credit-score-gauge relative w-[335px] h-[180px]">
+    <div 
+      className="credit-score-gauge relative w-[335px] h-[180px] cursor-pointer transition-transform hover:scale-[1.02] active:scale-[0.98]"
+      onClick={handleClick}
+    >
       <div className="semi-circle-container relative w-full h-full">
         {/* Score Bar */}
         <div className="absolute top-0 left-0 w-full h-full">

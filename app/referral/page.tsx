@@ -6,6 +6,9 @@ import ShareIcon from '@mui/icons-material/Share';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import CurrencyRupeeIcon from '@mui/icons-material/CurrencyRupee';
+import LinkIcon from '@mui/icons-material/Link';
+import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import CardMembershipIcon from '@mui/icons-material/CardMembership';
 
 export default function ReferralPage() {
   const [copied, setCopied] = useState(false);
@@ -28,80 +31,146 @@ export default function ReferralPage() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-950 text-white pt-20 px-4">
-      <div className="max-w-md mx-auto">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-gradient-to-br from-[#2D0A1F] to-[#1A0612] rounded-3xl p-6 mb-6"
-        >
-          <div className="flex items-center gap-4 mb-6">
-            <div className="w-12 h-12 rounded-2xl bg-[#A2195E]/10 flex items-center justify-center">
-              <ShareIcon sx={{ fontSize: 24, color: '#A2195E' }} />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold">Refer & Earn</h1>
-              <p className="text-white/60">Share with friends and earn rewards</p>
-            </div>
-          </div>
-
-          <div className="space-y-4 mb-8">
-            <div className="flex items-center gap-3 p-4 rounded-xl bg-black/20">
-              <div className="w-10 h-10 rounded-xl bg-[#A2195E]/10 flex items-center justify-center">
-                <CurrencyRupeeIcon sx={{ fontSize: 20, color: '#A2195E' }} />
+    <div className="h-screen bg-neutral-950 text-white overflow-hidden">
+      <div className="h-full overflow-y-auto pt-20 px-4 pb-8">
+        <div className="max-w-md mx-auto">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-gradient-to-br from-[#2D0A1F] to-[#1A0612] rounded-3xl p-6 mb-6"
+          >
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-12 h-12 rounded-2xl bg-[#A2195E]/10 flex items-center justify-center">
+                <ShareIcon sx={{ fontSize: 24, color: '#A2195E' }} />
               </div>
               <div>
-                <p className="text-sm text-white/60">Your Reward</p>
-                <p className="text-xl font-bold">₹100 per referral</p>
+                <h1 className="text-2xl font-bold">Refer & Earn</h1>
+                <p className="text-white/60">Share with friends and earn rewards</p>
               </div>
             </div>
-          </div>
 
-          <div className="space-y-4">
-            <div className="relative">
-              <input 
-                type="text"
-                value={referralLink}
-                readOnly
-                className="w-full px-4 py-3 rounded-xl bg-black/20 text-white/90 text-sm focus:outline-none focus:ring-2 focus:ring-[#A2195E]/50"
-              />
+            <div className="space-y-4 mb-8">
+              <div className="flex items-center gap-3 p-4 rounded-xl bg-black/20">
+                <div className="w-10 h-10 rounded-xl bg-[#A2195E]/10 flex items-center justify-center">
+                  <CurrencyRupeeIcon sx={{ fontSize: 20, color: '#A2195E' }} />
+                </div>
+                <div>
+                  <p className="text-sm text-white/60">Your Reward</p>
+                  <p className="text-xl font-bold">₹100 per referral</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="relative">
+                <input 
+                  type="text"
+                  value={referralLink}
+                  readOnly
+                  className="w-full px-4 py-3 rounded-xl bg-black/20 text-white/90 text-sm focus:outline-none focus:ring-2 focus:ring-[#A2195E]/50"
+                />
+                <button
+                  onClick={handleCopy}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg hover:bg-white/5"
+                >
+                  <ContentCopyIcon sx={{ fontSize: 20, color: copied ? '#4CAF50' : '#A2195E' }} />
+                </button>
+              </div>
+
               <button
-                onClick={handleCopy}
-                className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg hover:bg-white/5"
+                onClick={handleWhatsAppShare}
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-[#25D366] text-white font-medium hover:opacity-90 transition-opacity"
               >
-                <ContentCopyIcon sx={{ fontSize: 20, color: copied ? '#4CAF50' : '#A2195E' }} />
+                <WhatsAppIcon />
+                Share via WhatsApp
               </button>
             </div>
+          </motion.div>
 
-            <button
-              onClick={handleWhatsAppShare}
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-[#25D366] text-white font-medium hover:opacity-90 transition-opacity"
-            >
-              <WhatsAppIcon />
-              Share via WhatsApp
-            </button>
-          </div>
-        </motion.div>
+          {/* How it Works Section */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-8 mb-6"
+          >
+            <h2 className="text-xl font-bold mb-4 text-center">How it Works</h2>
+            <div className="space-y-3">
+              {/* Step 1 */}
+              <motion.div 
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.2 }}
+                className="bg-gradient-to-br from-[#2D0A1F] to-[#1A0612] rounded-xl p-3 transform hover:scale-102 transition-transform"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[#A2195E]/10 flex items-center justify-center shrink-0">
+                    <LinkIcon sx={{ fontSize: 20, color: '#A2195E' }} />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-sm mb-0.5">Share your referral link</h3>
+                    <p className="text-white/70 text-xs">Share your unique referral link with friends and family.</p>
+                  </div>
+                </div>
+              </motion.div>
 
-        {/* Stats Section */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="bg-gradient-to-br from-[#2D0A1F] to-[#1A0612] rounded-3xl p-6"
-        >
-          <h2 className="text-lg font-semibold mb-4">Your Referrals</h2>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="p-4 rounded-xl bg-black/20">
-              <p className="text-2xl font-bold">0</p>
-              <p className="text-sm text-white/60">Total Referrals</p>
+              {/* Step 2 */}
+              <motion.div 
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.4 }}
+                className="bg-gradient-to-br from-[#2D0A1F] to-[#1A0612] rounded-xl p-3 transform hover:scale-102 transition-transform"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[#A2195E]/10 flex items-center justify-center shrink-0">
+                    <CardMembershipIcon sx={{ fontSize: 20, color: '#A2195E' }} />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-sm mb-0.5">Friend subscribes to a plan</h3>
+                    <p className="text-white/70 text-xs">When your friend signs up using your referral link.</p>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Step 3 */}
+              <motion.div 
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.6 }}
+                className="bg-gradient-to-br from-[#2D0A1F] to-[#1A0612] rounded-xl p-3 transform hover:scale-102 transition-transform"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[#A2195E]/10 flex items-center justify-center shrink-0">
+                    <CurrencyRupeeIcon sx={{ fontSize: 20, color: '#A2195E' }} />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-sm mb-0.5">You earn rewards</h3>
+                    <p className="text-white/70 text-xs">Get exciting rewards for each successful referral.</p>
+                  </div>
+                </div>
+              </motion.div>
             </div>
-            <div className="p-4 rounded-xl bg-black/20">
-              <p className="text-2xl font-bold">₹0</p>
-              <p className="text-sm text-white/60">Total Earned</p>
+          </motion.div>
+
+          {/* Stats Section */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="bg-gradient-to-br from-[#2D0A1F] to-[#1A0612] rounded-3xl p-6"
+          >
+            <h2 className="text-lg font-semibold mb-4">Your Referrals</h2>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-4 rounded-xl bg-black/20">
+                <p className="text-2xl font-bold">0</p>
+                <p className="text-sm text-white/60">Total Referrals</p>
+              </div>
+              <div className="p-4 rounded-xl bg-black/20">
+                <p className="text-2xl font-bold">₹0</p>
+                <p className="text-sm text-white/60">Total Earned</p>
+              </div>
             </div>
-          </div>
-        </motion.div>
+          </motion.div>
+        </div>
       </div>
     </div>
   );

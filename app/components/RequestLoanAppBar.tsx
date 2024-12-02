@@ -13,23 +13,21 @@ export default function RequestLoanAppBar() {
   };
 
   return (
-    <div className="app-bar">
-      <div className="flex items-center justify-between w-full">
-        <div 
-          className="w-[34px] h-[34px] bg-[#F4F4F4] rounded-full flex items-center justify-center cursor-pointer"
+    <div className="bg-gradient-to-r from-[#A2195E] to-[#8B1550] p-4">
+      <div className="flex items-center gap-3">
+        <button 
           onClick={handleBackClick}
+          className="text-white hover:opacity-80 transition-opacity"
         >
           <Image
             src="/images/searchprofileicons/arrowbendleft.svg"
             alt="Back Icon"
             width={24} 
             height={24}
+            className="invert"
           />
-        </div>
-        <div className="flex-1 text-center">
-          <span style={{ fontSize: '17px' }}>Request Loan</span>
-        </div>
-        <div className="w-[34px]"></div> {/* Empty div for balance */}
+        </button>
+        <span className="text-white text-lg font-medium">Request Credit</span>
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
 import { initializeApp, getApp, getApps } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import { getAuth, Auth } from 'firebase/auth';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -10,37 +10,7 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Debug Firebase configuration
-console.warn('DEBUG - Firebase Config:', {
-  hasApiKey: !!firebaseConfig.apiKey,
-  hasAuthDomain: !!firebaseConfig.authDomain,
-  hasProjectId: !!firebaseConfig.projectId,
-  hasMessagingSenderId: !!firebaseConfig.messagingSenderId,
-  hasAppId: !!firebaseConfig.appId,
-  config: firebaseConfig
-});
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+export const auth: Auth = getAuth(app);
 
-// Initialize Firebase
-let app;
-try {
-  app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-  console.warn('DEBUG - Firebase initialized successfully');
-} catch (error) {
-  console.error('DEBUG - Firebase initialization error:', error);
-  throw error;
-}
-
-// Initialize Auth
-let auth;
-try {
-  auth = getAuth(app);
-  console.warn('DEBUG - Firebase Auth initialized successfully', {
-    currentUser: auth.currentUser ? 'Present' : 'None',
-    isInitialized: !!auth
-  });
-} catch (error) {
-  console.error('DEBUG - Firebase Auth initialization error:', error);
-  throw error;
-}
-
-export { app, auth };
+export default app;
