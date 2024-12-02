@@ -197,70 +197,85 @@ export default function ReportBorrower() {
                 </div>
 
                 {/* Phone Input */}
-                <div className="relative">
-                  <Phone className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                  <TextField
-                    fullWidth
-                    label="Borrower Phone Number"
-                    variant="outlined"
-                    value={formData.borrowerPhone}
-                    onChange={handleInputChange('borrowerPhone')}
-                    type="tel"
-                    required
-                    inputProps={{
-                      pattern: '[0-9]{10}',
-                      maxLength: 10,
-                    }}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        paddingLeft: '2.5rem',
-                        borderRadius: '12px',
-                        '&:hover fieldset': {
-                          borderColor: '#A2195E',
-                        },
-                        '&.Mui-focused fieldset': {
-                          borderColor: '#A2195E',
-                        },
-                      },
-                      '& .MuiInputLabel-root.Mui-focused': {
-                        color: '#A2195E',
-                      },
-                    }}
-                  />
-                </div>
+<div className="relative">
+  <Phone className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+  <TextField
+    fullWidth
+    label="Borrower Phone Number"
+    variant="outlined"
+    value={formData.borrowerPhone}
+    onChange={handleInputChange('borrowerPhone')}
+    type="tel"
+    required
+    inputProps={{
+      pattern: '[0-9]{10}',
+      maxLength: 10,
+    }}
+    sx={{
+      '& .MuiOutlinedInput-root': {
+        paddingLeft: '2.5rem', // Adds space for the icon
+        borderRadius: '12px',
+        '&:hover fieldset': {
+          borderColor: '#A2195E', // Hover border color
+        },
+        '&.Mui-focused fieldset': {
+          borderColor: '#A2195E', // Focused border color
+        },
+      },
+      '& .MuiInputLabel-root': {
+        transform: 'translate(2.5rem, 1rem) scale(1)', // Moved further to the right
+      },
+      '& .MuiInputLabel-root.Mui-focused, & .MuiInputLabel-root.MuiFormLabel-filled': {
+        transform: 'translate(1rem, -0.5rem) scale(0.75)', // Shrinks and moves up
+      },
+      '& .MuiInputLabel-root.Mui-focused': {
+        color: '#A2195E', // Focused label color
+      },
+    }}
+  />
+</div>
 
-                {/* Amount Input */}
-                <div className="relative">
-                  <IndianRupee className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                  <TextField
-                    fullWidth
-                    label="Unpaid Amount"
-                    variant="outlined"
-                    value={formData.unpaidAmount}
-                    onChange={handleInputChange('unpaidAmount')}
-                    type="number"
-                    required
-                    inputProps={{
-                      min: 0,
-                      step: "0.01"
-                    }}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        paddingLeft: '2.5rem',
-                        borderRadius: '12px',
-                        '&:hover fieldset': {
-                          borderColor: '#A2195E',
-                        },
-                        '&.Mui-focused fieldset': {
-                          borderColor: '#A2195E',
-                        },
-                      },
-                      '& .MuiInputLabel-root.Mui-focused': {
-                        color: '#A2195E',
-                      },
-                    }}
-                  />
-                </div>
+{/* Amount Input */}
+<div className="relative">
+  <IndianRupee className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+  <TextField
+    fullWidth
+    label="Unpaid Amount"
+    variant="outlined"
+    value={formData.unpaidAmount}
+    onChange={handleInputChange('unpaidAmount')}
+    type="number"
+    required
+    inputProps={{
+      min: 0,
+      step: "0.01",
+    }}
+    sx={{
+      '& .MuiOutlinedInput-root': {
+        paddingLeft: '2.5rem', // Adds space for the icon
+        borderRadius: '12px',
+        '&:hover fieldset': {
+          borderColor: '#A2195E', // Hover border color
+        },
+        '&.Mui-focused fieldset': {
+          borderColor: '#A2195E', // Focused border color
+        },
+      },
+      '& .MuiInputLabel-root': {
+        transform: 'translate(2.5rem, 1rem) scale(1)', // Moved further to the right
+      },
+      '& .MuiInputLabel-root.Mui-focused, & .MuiInputLabel-root.MuiFormLabel-filled': {
+        transform: 'translate(1rem, -0.5rem) scale(0.75)', // Shrinks and moves up
+      },
+      '& .MuiInputLabel-root.Mui-focused': {
+        color: '#A2195E', // Focused label color
+      },
+    }}
+  />
+</div>
+
+
+
 
                 {/* Date Input */}
                 <div className="relative">
