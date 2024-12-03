@@ -3801,6 +3801,14 @@ react-dom@^18.2.0:
     loose-envify "^1.1.0"
     scheduler "^0.23.2"
 
+react-draggable@4.4.6:
+  version "4.4.6"
+  resolved "https://registry.npmjs.org/react-draggable/-/react-draggable-4.4.6.tgz"
+  integrity sha512-LtY5Xw1zTPqHkVmtM3X8MUOxNDOUhv/khTgBgrUvwaS064bwVvxT+q5El0uUFNx5IEPKXuRejr7UqLwBIg5pdw==
+  dependencies:
+    clsx "^1.1.1"
+    prop-types "^15.8.1"
+
 react-hook-form@^7.50.1:
   version "7.53.2"
   resolved "https://registry.npmjs.org/react-hook-form/-/react-hook-form-7.53.2.tgz"
@@ -3837,6 +3845,15 @@ react-pdf@*, react-pdf@^7.7.1:
     prop-types "^15.6.2"
     tiny-invariant "^1.0.0"
     warning "^4.0.0"
+
+react-rnd@^10.4.13:
+  version "10.4.13"
+  resolved "https://registry.npmjs.org/react-rnd/-/react-rnd-10.4.13.tgz"
+  integrity sha512-Vgbf0iihspcQ6nkaFhpOGWfmnuVbhkhoB0hBbYl8aRDA4horsQHESc4E1z7O/P27kFFjK2aqM0u5CGzfr9gEZA==
+  dependencies:
+    re-resizable "6.10.0"
+    react-draggable "4.4.6"
+    tslib "2.6.2"
 
 react-signature-canvas@^1.0.6:
   version "1.0.6"

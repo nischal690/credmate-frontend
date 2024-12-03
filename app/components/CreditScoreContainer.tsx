@@ -1,7 +1,6 @@
 'use client';
 
 import CreditScoreGauge from './CreditScoreGauge';
-import CreditMetricsGrid from './CreditMetricsGrid';
 
 export default function CreditScoreContainer() {
   // Example credit score data
@@ -20,7 +19,6 @@ export default function CreditScoreContainer() {
         status={creditScore.status}
       />
       <p className="text-center text-[#8A8A8A] mx-1 mb-1 px-1">Your <span className="text-[#A2195E]">Credmate</span> score is updated every 24 hours</p>
-      <CreditMetricsGrid />
     </div>
   );
 }

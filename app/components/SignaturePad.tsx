@@ -150,10 +150,24 @@ export default function SignaturePad() {
     }
   }
 
+<<<<<<< HEAD
+  const handleConfirm = () => {
+    if (strokes.length > 0) {
+      const signature = strokes[strokes.length - 1] // Last stroke is the final signature
+      localStorage.setItem('signature', signature)
+      console.log('Signature saved to local storage')
+      // Ensure the router push happens after saving
+      setTimeout(() => {
+        router.push('/place-signature')
+      }, 0);
+    } else {
+      console.error('No signature found')
+=======
   const handleConfirm = async () => {
     if (isEmpty) {
       toast.error('Please draw your signature first')
       return
+>>>>>>> cb1c7fbf4f5733b0dbb39e606e3378ccdf2034d2
     }
 
     try {

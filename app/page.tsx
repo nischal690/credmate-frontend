@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import AppBar from './components/AppBar';
 import NewsCarousel from './components/NewsCarousel';
 import CreditScoreContainer from './components/CreditScoreContainer';
+import CreditMetricsGrid from './components/CreditMetricsGrid'
 import RecentActivity from './components/RecentActivity';
 import NavBar from './components/NavBar';
 import LoanApplication from './components/LoanApplication';
@@ -60,7 +61,8 @@ export default function Home() {
         <div className="px-6 pt-16 pb-24 bg-gradient-to-br from-white to-pink-50 min-h-full">
           <div className="max-w-md mx-auto">
             <NewsCarousel />
-            <CreditScoreContainer />
+            <CreditScoreContainer />           
+             <CreditMetricsGrid />
             <LoanApplication />
             <RecentActivity />
           </div>

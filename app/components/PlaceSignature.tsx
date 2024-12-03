@@ -1,7 +1,8 @@
 'use client'
 
-import React, { useState, useRef, useEffect } from 'react'
-import { Document, Page, pdfjs } from 'react-pdf'
+import React, { useEffect, useRef, useState } from 'react'
+import { Document, Page } from 'react-pdf' // react-pdf library for rendering PDFs
+import { Rnd } from 'react-rnd' // react-rnd library for draggable/resizable elements
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { Check } from 'lucide-react'
@@ -39,26 +40,9 @@ export default function PlaceSignature({
   const rotationStartAngle = useRef<number>(0)
 
   useEffect(() => {
-    // Retrieve the signature from local storage
+    // Only get signature from localStorage, PDF is now hardcoded
     const storedSignature = localStorage.getItem('signature')
-    if (storedSignature) {
-      setSignature(storedSignature)
-    }
-
-    const handleGlobalMouseUp = () => {
-      setIsDragging(false)
-      setIsResizing(false)
-      setIsRotating(false)
-    }
-
-    // Add global event listeners to handle mouse actions outside the container
-    document.addEventListener('mouseup', handleGlobalMouseUp)
-    document.addEventListener('mousemove', handleMouseMove)
-
-    return () => {
-      document.removeEventListener('mouseup', handleGlobalMouseUp)
-      document.removeEventListener('mousemove', handleMouseMove)
-    }
+    if (storedSignature) setSignature(storedSignature)
   }, [])
 
   function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
@@ -141,32 +125,15 @@ export default function PlaceSignature({
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-br from-white to-pink-50">
-      <div className="fixed top-0 left-0 right-0 bg-white border-b border-pink-100 px-4 py-3 z-50">
-        {/* App Bar */}
-        <div className="flex items-center justify-between max-w-md mx-auto">
-          <button
-            onClick={handleBackClick}
-            className="w-10 h-10 rounded-full bg-pink-50 flex items-center justify-center hover:bg-pink-100 transition-colors"
-          >
-            <Image
-              src="/images/searchprofileicons/arrowbendleft.svg"
-              alt="Back"
-              width={24}
-              height={24}
-            />
-          </button>
-          <h1 className="text-lg font-semibold text-neutral-800">Place Signature</h1>
-          <div className="w-10" />
-        </div>
-      </div>
+    <div className="flex flex-col min-h-screen bg-gray-100">
+      {/* Header */}
+      <header className="bg-white shadow p-4">
+        <h1 className="text-lg font-semibold text-gray-800">Place Your Signature</h1>
+      </header>
 
-      {/* Main Content */}
-      <main className="flex-1 pt-16 px-4 pb-24 max-w-md mx-auto w-full">
-        <div
-          ref={containerRef}
-          className="h-[70vh] w-[90%] max-w-md mx-auto overflow-auto relative border border-pink-100 rounded-lg bg-white"
-        >
+      {/* PDF Viewer */}
+      <main className="flex-1 flex justify-center items-center p-4">
+        <div className="relative">
           <Document
             file={pdfUrl}
             onLoadSuccess={onDocumentLoadSuccess}
@@ -192,20 +159,20 @@ export default function PlaceSignature({
             )}
             {!isLoading && !error && <Page pageNumber={pageNumber} width={300} />}
           </Document>
+
+          {/* Signature Sticker */}
           {signature && (
-            <div
-              ref={signatureRef}
-              style={{
-                position: 'absolute',
-                left: `${position.x}px`,
-                top: `${position.y}px`,
-                width: `${size.width}px`,
-                height: `${size.height}px`,
-                transform: `rotate(${rotation}deg)`,
-                cursor: isDragging ? 'grabbing' : 'grab',
-                border: '1px solid pink',
+            <Rnd
+              bounds="parent"
+              default={{
+                x: pdfDimensions.width / 2 - 50,
+                y: pdfDimensions.height / 2 - 50,
+                width: 100,
+                height: 50,
               }}
-              onMouseDown={handleMouseDown}
+              ref={signatureRef}
+              resizeHandleStyles={{}}
+              className="absolute cursor-move"
             >
               <img
                 src={signature}
@@ -214,18 +181,10 @@ export default function PlaceSignature({
                   width: '100%',
                   height: '100%',
                   objectFit: 'contain',
+                  pointerEvents: 'none',
                 }}
-                draggable={false}
               />
-              <div
-                className="absolute bottom-0 right-0 w-4 h-4 bg-pink-500 cursor-se-resize"
-                onMouseDown={handleResizeStart}
-              />
-              <div
-                className="absolute top-0 left-0 w-4 h-4 bg-pink-500 cursor-pointer rounded-full"
-                onMouseDown={handleRotateStart}
-              />
-            </div>
+            </Rnd>
           )}
         </div>
         <div className="p-4 flex justify-between items-center">
@@ -255,7 +214,7 @@ export default function PlaceSignature({
         >
           <Check className="w-6 h-6" />
         </button>
-      </main>
+      </footer>
     </div>
   )
 }
