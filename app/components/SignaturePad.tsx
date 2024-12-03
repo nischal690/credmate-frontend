@@ -61,10 +61,10 @@ export default function SignaturePad() {
   // Update pen style when it changes
   useEffect(() => {
     if (signatureRef.current) {
-      signatureRef.current.penColor = penStyle.color
       const canvas = signatureRef.current.getCanvas()
       const ctx = canvas.getContext('2d')
       if (ctx) {
+        ctx.strokeStyle = penStyle.color
         ctx.lineWidth = penStyle.thickness
       }
     }
@@ -97,7 +97,7 @@ export default function SignaturePad() {
       if (ctx) {
         drawGuideLine()
         strokeHistory.forEach(dataURL => {
-          const img = new Image()
+          const img = document.createElement('img')
           img.src = dataURL
           img.onload = () => {
             ctx.drawImage(img, 0, 0)

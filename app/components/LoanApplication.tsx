@@ -11,17 +11,16 @@ export default function LoanApplication() {
         <div className="flex-1 pr-4">
           <div className="flex items-center gap-2 mb-2">
             <div className="w-2 h-2 rounded-full bg-[#A2195E] animate-pulse" />
-            <span className="text-xs font-medium text-[#A2195E] tracking-wide uppercase">Coming Soon</span>
+            <span className="text-xs font-medium text-[#A2195E] tracking-wide uppercase">Apply Now</span>
           </div>
           <h2 className="text-lg font-semibold text-gray-800 mb-1 group-hover:text-[#A2195E] transition-colors duration-300">
             Instant Loans up to ₹5L
           </h2>
           <div className="flex items-center flex-wrap gap-4">
             <button
-              disabled
-              className="bg-gradient-to-r from-[#A2195E] to-[#8B1550] text-white px-5 py-2 rounded-lg text-sm font-medium opacity-90 cursor-not-allowed flex items-center gap-2"
+              className="bg-gradient-to-r from-[#A2195E] to-[#8B1550] text-white px-5 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity duration-300 flex items-center gap-2"
             >
-              Coming Soon
+              Apply Now
               <svg
                 className="w-4 h-4 text-white"
                 viewBox="0 0 24 24"
@@ -31,8 +30,7 @@ export default function LoanApplication() {
                 strokeLinecap="round"
                 strokeLinejoin="round"
               >
-                <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/>
-                <path d="M12 6v6l4 2"/>
+                <path d="M5 12h14M12 5l7 7-7 7"/>
               </svg>
             </button>
             <div className="flex items-center gap-3">
@@ -49,7 +47,7 @@ export default function LoanApplication() {
                   <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
                   <polyline points="22 4 12 14.01 9 11.01"/>
                 </svg>
-                <span className="text-xs text-gray-600">Quick Process</span>
+                <span className="text-xs text-gray-600">Instant Approval</span>
               </div>
               <div className="h-3 w-px bg-gray-300" />
               <div className="flex items-center gap-1">
@@ -64,7 +62,7 @@ export default function LoanApplication() {
                 >
                   <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/>
                 </svg>
-                <span className="text-xs text-gray-600">Stay Tuned</span>
+                <span className="text-xs text-gray-600">24/7 Support</span>
               </div>
             </div>
           </div>

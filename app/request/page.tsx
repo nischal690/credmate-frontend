@@ -33,8 +33,8 @@ const StyledTextField = styled(TextField)({
 
 // Mock saved profiles data
 const savedProfiles = [
-  { id: 1, name: 'John Doe', mobile: '+91 9876543210', image: '/images/Profile.svg' },
-  { id: 2, name: 'Jane Smith', mobile: '+91 9876543211', image: '/images/Profile.svg' },
+  { id: 1, name: 'John Doe', mobile: '+91 9876543210', image: '/images/saved-profiles.svg' },
+  { id: 2, name: 'Jane Smith', mobile: '+91 9876543211', image: '/images/saved-profiles.svg' },
 ];
 
 const RequestLoanPage = () => {

@@ -1,9 +1,9 @@
 'use client'
 
-import PDFViewer from '@/components/PDFViewer'
-import { AppHeader } from '@/components/ui/app-header'
+import PDFViewer from '../components/PDFViewer'
+import { AppHeader } from '../components/ui/app-header'
 import { useRouter } from 'next/navigation'
-import NavBar from '@/components/NavBar'
+import NavBar from '../components/NavBar'
 
 export default function RequestLoanPage() {
   const router = useRouter()
