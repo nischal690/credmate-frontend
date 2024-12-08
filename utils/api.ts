@@ -27,9 +27,28 @@ api.interceptors.response.use(
     (response) => response,
     async (error) => {
         if (error.response?.status === 401) {
-            clearAuthTokens();
-            // Redirect to login page
-            window.location.href = '/auth/phone';
+            // Get current route
+            const currentPath = window.location.pathname;
+            
+            // Only redirect to auth if not already on an auth page
+            if (!currentPath.startsWith('/auth')) {
+                // Try to refresh the token first
+                try {
+                    const newToken = await getValidAccessToken();
+                    if (newToken) {
+                        // If we got a new token, retry the original request
+                        const originalRequest = error.config;
+                        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+                        return api(originalRequest);
+                    }
+                } catch (refreshError) {
+                    console.error('Token refresh failed:', refreshError);
+                }
+                
+                // If token refresh failed, clear auth and redirect
+                clearAuthTokens();
+                window.location.href = '/auth/phone';
+            }
         }
         return Promise.reject(error);
     }

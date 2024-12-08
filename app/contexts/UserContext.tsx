@@ -84,6 +84,23 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     setError(null);
     
     try {
+      // First check if user is authenticated
+      const user = auth.currentUser;
+      if (!user) {
+        console.log('No authenticated user, clearing profile');
+        setUserProfile(null);
+        localStorage.removeItem(STORAGE_KEY);
+        return;
+      }
+
+      // Then try to get a fresh token
+      try {
+        await user.getIdToken(true);
+      } catch (tokenError) {
+        console.error('Error refreshing token:', tokenError);
+        // Don't throw here, let's try to use the existing token
+      }
+
       console.log('Fetching profile data...');
       const data = await fetchProfile();
       console.log('Fetched profile data:', data);
@@ -108,9 +125,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       }
     } catch (err) {
       console.error('Error refreshing profile:', err);
+      // Only set error, don't clear profile data
       setError('Failed to fetch user profile');
-      setUserProfile(null);
-      localStorage.setItem(STORAGE_KEY, 'null');
     } finally {
       setIsLoading(false);
     }
