@@ -1,10 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { RecaptchaVerifier, signInWithPhoneNumber, Auth } from "firebase/auth";
 import { auth } from "../../../lib/firebase";
+import { motion } from "framer-motion";
 import Image from 'next/image';
+import { storeAuthTokens } from "@/utils/auth";
+
 // Country codes data
 const countryCodes = [
   { id: 'IN', code: '91', flag: '🇮🇳'},
@@ -26,6 +29,20 @@ export default function PhoneAuthPage() {
   const [selectedCountry, setSelectedCountry] = useState(countryCodes[0]);
   const [showCountryList, setShowCountryList] = useState(false);
   const [otpValue, setOtpValue] = useState("");
+  const [resendTimer, setResendTimer] = useState(30);
+  const [canResend, setCanResend] = useState(false);
+  const otpInputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  useEffect(() => {
+    if (showOTP && resendTimer > 0) {
+      const timer = setInterval(() => {
+        setResendTimer((prev) => prev - 1);
+      }, 1000);
+      return () => clearInterval(timer);
+    } else if (resendTimer === 0) {
+      setCanResend(true);
+    }
+  }, [showOTP, resendTimer]);
 
   const setupRecaptcha = () => {
     // Ensure the recaptcha-container exists in the DOM
@@ -76,38 +93,106 @@ export default function PhoneAuthPage() {
     }
   };
 
-  const handleOTPVerification = async (otp: string) => {
+  const handleVerifyOTP = async () => {
+    console.log('handleVerifyOTP called');
+    console.log('OTP Value:', otpValue);
+    console.log('Confirmation Result:', confirmationResult ? 'exists' : 'null');
+    
     try {
+      // Validate OTP format before submission
+      if (!/^\d{6}$/.test(otpValue)) {
+        console.log('Invalid OTP format');
+        setError("Please enter a valid 6-digit OTP");
+        return;
+      }
+
       setLoading(true);
       setError("");
       
       if (!confirmationResult) {
-        throw new Error("Please request OTP first");
+        console.log('No confirmation result found');
+        setError("Session expired. Please request a new OTP");
+        return;
       }
 
-      const result = await confirmationResult.confirm(otp);
-      const user = result.user;
+      console.log('Attempting to confirm OTP with Firebase...');
+      const result = await confirmationResult.confirm(otpValue);
+      console.log('Firebase confirmation successful:', result ? 'success' : 'failed');
+
+      if (!result || !result.user) {
+        console.log('No user returned from confirmation');
+        setError("Verification failed. Please try again.");
+        return;
+      }
+
+      console.log('Getting ID token...');
+      const idToken = await result.user.getIdToken();
+      console.log('ID token received:', idToken ? 'success' : 'failed');
       
-      // Get the token and log it
-      const token = await user.getIdToken(true); // Force token refresh
-      console.log('Firebase Auth Success');
-      console.log('User ID:', user.uid);
-      console.log('Phone:', user.phoneNumber);
-      console.log('Firebase ID Token:', token);
+      if (!idToken) {
+        console.log('Failed to get ID token');
+        setError("Failed to get authentication token. Please try again.");
+        return;
+      }
+
+      // Store tokens in localStorage
+      storeAuthTokens({
+        accessToken: idToken,
+        refreshToken: result.user.refreshToken || '',
+        accessTokenExpiresIn: 3600, // 1 hour
+        refreshTokenExpiresIn: 2592000, // 30 days
+        timestamp: new Date().toISOString()
+      });
+
+      // Set the auth cookie
+      document.cookie = `authToken=${idToken}; path=/; max-age=3600; SameSite=Strict`;
       
-      // Store token in localStorage and cookie
-      localStorage.setItem('authToken', token);
-      document.cookie = `authToken=${token}; path=/`;
+      // Call the complete-profile API
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/user/complete-profile`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${idToken}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch profile data');
+        }
+
+        const profileData = await response.json();
+        console.log('Profile data:', profileData);
+
+        // Check if name and businessType are empty
+        if (!profileData.name || !profileData.businessType) {
+          router.push('/auth/complete-profile');
+        } else {
+          router.push('/');
+        }
+
+      } catch (error: any) {
+        console.error('Error fetching profile:', error);
+        alert('Error fetching profile data: ' + error.message);
+      }
       
-      // Log the stored values
-      console.log('Stored token in localStorage:', localStorage.getItem('authToken'));
-      console.log('Current user after auth:', auth.currentUser?.uid);
+    } catch (error: any) {
+      console.error('Error during verification:', error);
+      console.error('Error code:', error.code);
+      console.error('Error message:', error.message);
       
-      // Navigate to home page
-      window.location.href = '/';
-    } catch (err: any) {
-      setError(err.message || "Invalid OTP");
-      console.error("OTP verification error:", err);
+      // Handle specific Firebase auth errors
+      if (error.code === 'auth/invalid-verification-code') {
+        setError("Invalid OTP code. Please check and try again.");
+      } else if (error.code === 'auth/code-expired') {
+        setError("OTP has expired. Please request a new code.");
+      } else if (error.code === 'auth/too-many-requests') {
+        setError("Too many attempts. Please try again later.");
+      } else if (error.code === 'auth/network-request-failed') {
+        setError("Network error. Please check your connection.");
+      } else {
+        setError(error.message || "Failed to verify OTP");
+      }
     } finally {
       setLoading(false);
     }
@@ -124,184 +209,244 @@ export default function PhoneAuthPage() {
     handlePhoneSubmit(phoneNumber);
   };
 
+  const handleResendOTP = async () => {
+    if (!canResend) return;
+    setCanResend(false);
+    setResendTimer(30);
+    await handlePhoneSubmit(phoneNumber);
+  };
+
+  const handleOtpChange = (index: number, value: string) => {
+    // Only allow numeric values
+    if (!/^\d*$/.test(value)) {
+      return;
+    }
+
+    if (value.length > 1) {
+      value = value[0];
+    }
+
+    const newOtp = otpValue.split('');
+    newOtp[index] = value;
+    const newOtpString = newOtp.join('');
+    
+    // Set the OTP value
+    setOtpValue(newOtpString);
+
+    // Auto advance to next input if not the last box
+    if (value && index < 5) {
+      otpInputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Backspace' && !otpValue[index] && index > 0) {
+      otpInputRefs.current[index - 1]?.focus();
+    }
+  };
+
+  const handleRef = (el: HTMLInputElement | null): void => {
+    otpInputRefs.current.push(el);
+  };
+
   return (
-    <div className="flex flex-col min-h-screen bg-white">
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-white via-pink-50 to-white">
       <main className="flex-1 overflow-y-auto">
-        <div className="px-6 pt-16 pb-24 bg-gradient-to-br from-white to-pink-50 min-h-full">
-          <div className="max-w-md mx-auto pt-12">
-            <div className="flex flex-col items-center mb-12">
-              <Image
-                src="/images/logoR.svg"
-                alt="Credmate Logo"
-                width={200}
-                height={53}
-                className="w-[200px] h-[53px] mb-4"
-                priority
-              />
-              <h2 className="text-2xl font-bold bg-gradient-to-r from-pink-700 via-pink-500 to-pink-600 bg-clip-text text-transparent">
+        <div className="px-4 sm:px-6 pt-8 pb-24 min-h-full">
+          <div className="max-w-md mx-auto pt-8 sm:pt-12">
+            <div className="flex flex-col items-center mb-8">
+              <motion.h2 
+                className="text-2xl font-bold text-center bg-gradient-to-r from-pink-600 to-pink-500 bg-clip-text text-transparent"
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ duration: 0.6, ease: "easeOut" }}
+              >
                 Your Credit Journey Starts Here
-              </h2>
+              </motion.h2>
             </div>
 
-            <div className="bg-white rounded-2xl shadow-sm p-8 border border-pink-100">
-              <h1 className="text-2xl font-bold text-neutral-800 mb-2 bg-gradient-to-r from-pink-700 to-pink-500 bg-clip-text text-transparent">
+            <motion.div 
+              className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-lg p-8 border border-pink-100/50"
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+            >
+              <h1 className="text-2xl font-bold text-neutral-800 mb-3 bg-gradient-to-r from-pink-700 to-pink-500 bg-clip-text text-transparent">
                 {showOTP ? "Verify OTP" : "Welcome Back"}
               </h1>
               <p className="text-base text-neutral-600 mb-8">
                 {showOTP 
-                  ? `Please enter the verification code sent to ${selectedCountry.code} ${phoneNumber}` 
+                  ? `Please enter the verification code sent to +${selectedCountry.code} ${phoneNumber}` 
                   : "Enter your phone number to continue"}
               </p>
 
-              <div className="space-y-6">
-                {!showOTP ? (
-                  <div>
-                    <label htmlFor="phone" className="block text-sm font-medium text-neutral-700 mb-2">
-                      Phone Number
-                    </label>
-                    <div className="relative flex gap-2">
-                      <div className="relative">
-                        <button
-                          type="button"
-                          className="h-12 px-3 rounded-xl border border-neutral-200 bg-white hover:bg-neutral-50 flex items-center gap-2 transition-all duration-300"
-                          onClick={() => setShowCountryList(!showCountryList)}
-                        >
-                          <span className="text-lg">{selectedCountry.flag}</span>
-                          <span className="text-neutral-800">{selectedCountry.code}</span>
-                          <svg
-                            className={`w-4 h-4 text-neutral-400 transition-transform duration-200 ${showCountryList ? 'rotate-180' : ''}`}
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                          </svg>
-                        </button>
-                        
-                        {/* Country Dropdown */}
-                        {showCountryList && (
-                          <div className="absolute top-full left-0 mt-1 w-full bg-white border rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto">
-                            {countryCodes.map((country) => (
-                              <div
-                                key={country.id}
-                                className="px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2"
-                                onClick={() => {
-                                  setSelectedCountry(country);
-                                  setShowCountryList(false);
-                                }}
-                              >
-                                <span>{country.flag}</span>
-                                
-                                <span className="text-gray-500">+{country.code}</span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                      
+              {showOTP ? (
+                <>
+                  <div className="otp-container">
+                    {[0, 1, 2, 3, 4, 5].map((index) => (
                       <input
-                        type="tel"
-                        id="phone"
-                        value={phoneNumber}
-                        onChange={(e) => setPhoneNumber(e.target.value)}
-                        placeholder="Enter your phone number"
-                        className="flex-1 px-4 py-3 rounded-xl border border-neutral-200 focus:border-pink-500 focus:ring focus:ring-pink-200 transition-all duration-300 text-neutral-800 placeholder-neutral-400"
-                        maxLength={10}
-                      />
-                    </div>
-                    <p className="mt-2 text-sm text-neutral-500">
-                      We&apos;ll send you a one-time verification code
-                    </p>
-                  </div>
-                ) : (
-                  <div>
-                    <label htmlFor="otp" className="block text-sm font-medium text-neutral-700 mb-2">
-                      Verification Code
-                    </label>
-                    <div className="relative">
-                      <input
+                        key={index}
+                        ref={handleRef}
                         type="text"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                        id="otp"
-                        value={otpValue}
-                        onChange={(e) => {
-                          const value = e.target.value.replace(/\D/g, '').slice(0, 6);
-                          setOtpValue(value);
-                        }}
-                        placeholder="Enter 6-digit OTP"
-                        className="w-full px-4 py-3 rounded-xl border border-neutral-200 focus:border-pink-500 focus:ring focus:ring-pink-200 transition-all duration-300 text-neutral-800 placeholder-neutral-400"
-                        maxLength={6}
+                        maxLength={1}
+                        value={otpValue[index] || ''}
+                        onChange={(e) => handleOtpChange(index, e.target.value)}
+                        onKeyDown={(e) => handleKeyDown(index, e)}
+                        className={`otp-input ${error ? 'border-red-500' : ''}`}
+                        disabled={loading}
                       />
-                      <button 
-                        type="button"
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-medium text-pink-600 hover:text-pink-700"
-                        onClick={() => {
-                          setShowOTP(false);
-                          setOtpValue("");
-                        }}
-                      >
-                        Change Number
-                      </button>
-                    </div>
-                    <p className="mt-2 text-sm text-neutral-500">
-                      Didn&apos;t receive the code? <button type="button" className="text-pink-600 hover:text-pink-700 font-medium">Resend OTP</button>
-                    </p>
+                    ))}
                   </div>
-                )}
 
-                <button
-                  onClick={() => {
-                    if (showOTP) {
-                      if (otpValue.length === 6) {
-                        handleOTPVerification(otpValue);
-                      }
-                    } else {
-                      handleSendOTP();
-                    }
-                  }}
-                  disabled={((!isValidPhoneNumber && !showOTP) || (showOTP && otpValue.length !== 6)) || loading}
-                  className={`w-full py-3.5 px-4 rounded-xl font-medium transition-all duration-300 ${
-                    ((isValidPhoneNumber && !showOTP) || (showOTP && otpValue.length === 6)) && !loading
-                      ? 'bg-gradient-to-r from-pink-600 to-pink-500 text-white hover:from-pink-700 hover:to-pink-600 active:scale-[0.98] shadow-sm'
-                      : 'bg-neutral-100 text-neutral-400 cursor-not-allowed'
-                  }`}
-                >
-                  {loading ? (
-                    <div className="flex items-center justify-center gap-2">
-                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      <span>{showOTP ? 'Verifying...' : 'Sending OTP...'}</span>
-                    </div>
-                  ) : (
-                    showOTP ? 'Verify OTP' : 'Continue'
+                  {error && (
+                    <motion.p
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="text-red-500 text-sm text-center mb-4"
+                    >
+                      {error}
+                    </motion.p>
                   )}
-                </button>
 
-                {error && (
-                  <div className="p-4 rounded-lg bg-red-50 border border-red-100">
-                    <p className="text-sm text-red-600">{error}</p>
+                  <button
+                    onClick={handleResendOTP}
+                    disabled={!canResend || loading}
+                    className={`text-sm text-center w-full mb-4 ${
+                      canResend ? 'text-pink-600 hover:text-pink-700' : 'text-gray-400'
+                    }`}
+                  >
+                    {canResend 
+                      ? 'Resend OTP' 
+                      : `Resend OTP in ${resendTimer}s`
+                    }
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      console.log('Verify button clicked');
+                      console.log('Current OTP value:', otpValue);
+                      console.log('Loading state:', loading);
+                      if (!loading && otpValue.length === 6) {
+                        handleVerifyOTP();
+                      }
+                    }}
+                    disabled={loading || otpValue.length !== 6}
+                    className="w-full py-3.5 px-4 rounded-xl font-semibold text-base transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] bg-gradient-to-r from-pink-600 to-pink-500 text-white hover:from-pink-700 hover:to-pink-600 shadow-md hover:shadow-lg disabled:bg-neutral-100 disabled:text-neutral-400 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
+                  >
+                    {loading ? (
+                      <div className="flex items-center justify-center gap-2">
+                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        <span>Verifying...</span>
+                      </div>
+                    ) : (
+                      'Verify OTP'
+                    )}
+                  </button>
+                </>
+              ) : (
+                <div>
+                  <label htmlFor="phone" className="block text-sm font-semibold text-neutral-700 mb-2">
+                    Phone Number
+                  </label>
+                  <div className="relative flex gap-2">
+                    <div className="relative">
+                      <button
+                        type="button"
+                        className="h-12 px-3 rounded-xl border border-neutral-200 bg-white/80 hover:bg-white hover:border-pink-200 flex items-center gap-2 transition-all duration-300 group"
+                        onClick={() => setShowCountryList(!showCountryList)}
+                      >
+                        <span className="text-lg">{selectedCountry.flag}</span>
+                        <span className="text-neutral-800 font-medium">+{selectedCountry.code}</span>
+                        <svg
+                          className={`w-4 h-4 text-neutral-400 group-hover:text-pink-500 transition-all duration-200 ${showCountryList ? 'rotate-180' : ''}`}
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                      
+                      {/* Country Dropdown with improved styling */}
+                      {showCountryList && (
+                        <div className="absolute top-full left-0 mt-2 w-48 bg-white/80 backdrop-blur-xl border border-pink-100 rounded-xl shadow-lg z-50 max-h-48 overflow-y-auto">
+                          {countryCodes.map((country) => (
+                            <div
+                              key={country.id}
+                              className="px-4 py-2.5 hover:bg-pink-50 cursor-pointer flex items-center gap-3 transition-colors duration-150"
+                              onClick={() => handleCountrySelect(country)}
+                            >
+                              <span className="text-lg">{country.flag}</span>
+                              <span className="font-medium text-neutral-700">+{country.code}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    
+                    <input
+                      type="tel"
+                      id="phone"
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      placeholder="Enter your phone number"
+                      className="flex-1 px-4 py-3 rounded-xl border border-neutral-200 bg-white/80 focus:border-pink-500 focus:ring focus:ring-pink-200/50 transition-all duration-300 text-neutral-800 placeholder-neutral-400 font-medium"
+                      maxLength={10}
+                    />
                   </div>
-                )}
-              </div>
-            </div>
 
-            <div className="mt-8 space-y-4">
-              <div className="flex items-center justify-center gap-2 text-sm text-neutral-500">
-                <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                <span>Bank Grade Security</span>
+                  <button
+                    onClick={handleSendOTP}
+                    disabled={!isValidPhoneNumber || loading}
+                    className="w-full py-3.5 px-4 mt-6 rounded-xl font-semibold text-base transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] bg-gradient-to-r from-pink-600 to-pink-500 text-white hover:from-pink-700 hover:to-pink-600 shadow-md hover:shadow-lg disabled:bg-neutral-100 disabled:text-neutral-400 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
+                  >
+                    {loading ? (
+                      <div className="flex items-center justify-center gap-2">
+                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        <span>Sending OTP...</span>
+                      </div>
+                    ) : (
+                      'Continue'
+                    )}
+                  </button>
+                </div>
+              )}
+
+              {error && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-4 p-4 rounded-lg bg-red-50 border border-red-100"
+                >
+                  <p className="text-sm text-red-600">{error}</p>
+                </motion.div>
+              )}
+            </motion.div>
+
+            {/* Footer section with improved styling */}
+            <motion.div 
+              className="mt-8 space-y-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+            >
+              <div className="flex items-center justify-center gap-2 text-sm text-neutral-600">
+                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                <span className="font-medium">Bank Grade Security</span>
               </div>
               
-              <p className="text-center text-sm text-neutral-500">
+              <p className="text-center text-sm text-neutral-600">
                 By continuing, you agree to our{' '}
-                <a href="#" className="text-pink-600 hover:text-pink-700">
+                <a href="#" className="text-pink-600 hover:text-pink-700 font-medium underline-offset-2 hover:underline">
                   Terms of Service
                 </a>{' '}
                 and{' '}
-                <a href="#" className="text-pink-600 hover:text-pink-700">
+                <a href="#" className="text-pink-600 hover:text-pink-700 font-medium underline-offset-2 hover:underline">
                   Privacy Policy
                 </a>
               </p>
-            </div>
+            </motion.div>
           </div>
         </div>
       </main>

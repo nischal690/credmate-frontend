@@ -224,12 +224,12 @@ const RequestLoanPage = () => {
                       control={<Radio />}
                       label={
                         <div className="flex flex-col items-center p-4 bg-pink-50 rounded-xl cursor-pointer transition-all hover:bg-pink-100">
-                          <div className="w-16 h-16 rounded-full bg-pink-200 flex items-center justify-center flex-shrink-0">
+                          <div className="w-12 h-12 rounded-full bg-pink-200 flex items-center justify-center flex-shrink-0">
                             <Image
                               src="/images/savedborrowers.svg"
                               alt="Saved Profiles"
-                              width={41}
-                              height={41}
+                              width={32}
+                              height={32}
                               className="mb-2 mt-2"
                             />
                           </div>
@@ -246,12 +246,12 @@ const RequestLoanPage = () => {
                       control={<Radio />}
                       label={
                         <div className="flex flex-col items-center p-4 bg-pink-50 rounded-xl cursor-pointer transition-all hover:bg-pink-100">
-                          <div className="w-16 h-16 rounded-full bg-pink-200 flex items-center justify-center flex-shrink-0">
+                          <div className="w-12 h-12 rounded-full bg-pink-200 flex items-center justify-center flex-shrink-0">
                             <Image
                               src="/images/newborrower.svg"
                               alt="New Profile"
-                              width={45}
-                              height={45}
+                              width={32}
+                              height={32}
                               className="mb-2 mt-1"
                             />
                           </div>

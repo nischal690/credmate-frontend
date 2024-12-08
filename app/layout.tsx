@@ -2,6 +2,7 @@ import '../styles/globals.css';
 import './styles/layout.css';
 import './styles/fonts.css';
 import { Metadata } from 'next';
+import { UserProvider } from './contexts/UserContext';
 
 export const metadata: Metadata = {
   title: 'Credmate',
@@ -16,7 +17,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        {children}
+        <UserProvider>
+          {children}
+        </UserProvider>
       </body>
     </html>
   );

@@ -9,16 +9,16 @@ export default function AuthCheck() {
   const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
-    const checkAuth = () => {
+    const checkAuth = async () => {
       try {
         const token = localStorage.getItem('authToken');
         const isAuthPage = pathname?.startsWith('/auth');
         
         // Only redirect if we're not already on the correct page
         if (!token && !isAuthPage && pathname !== '/auth/phone') {
-          window.location.href = '/auth/phone';
+          await router.push('/auth/phone');
         } else if (token && isAuthPage) {
-          window.location.href = '/';
+          await router.push('/');
         }
       } catch (error) {
         console.error('Auth check error:', error);
@@ -28,7 +28,7 @@ export default function AuthCheck() {
     };
 
     checkAuth();
-  }, [pathname]);
+  }, [pathname, router]);
 
   // Don't render children while checking auth to prevent flash
   if (isChecking) {

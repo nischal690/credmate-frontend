@@ -1,0 +1,70 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+.animate-gradient {
+  animation: gradient 5s ease infinite;
+  background-size: 200% 200%;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 31, 109, 0.9) 0%,
+    rgba(255, 117, 142, 1) 25%,
+    rgba(255, 31, 109, 0.9) 50%,
+    rgba(255, 117, 142, 1) 75%,
+    rgba(255, 31, 109, 0.9) 100%
+  );
+  background-size: 200% auto;
+  animation: shimmer 3s linear infinite;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  text-shadow: 0 0 10px rgba(255, 31, 109, 0.3);
+}
+
+.letter-spacing-animated {
+  transition: letter-spacing 0.3s ease;
+}
+
+.letter-spacing-animated:hover {
+  letter-spacing: 0.2em;
+}

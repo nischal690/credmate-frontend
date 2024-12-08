@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Drawer from '@mui/material/Drawer';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
@@ -21,11 +21,29 @@ import ShareIcon from '@mui/icons-material/Share';
 import CurrencyRupeeIcon from '@mui/icons-material/CurrencyRupee';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
 import { motion, AnimatePresence } from 'framer-motion';
+import { signOut } from 'firebase/auth';
+import { auth } from '../../lib/firebase';
+import { useUser } from '../contexts/UserContext';
 
 export default function AppBar() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+  const [profileName, setProfileName] = useState('Loading...');
+  const [profilePhone, setProfilePhone] = useState('');
+  const [profileImage, setProfileImage] = useState('');
+  const [imageError, setImageError] = useState(false);
   const router = useRouter();
+  const { userProfile } = useUser();
+
+  useEffect(() => {
+    // Update profile info whenever userProfile changes
+    if (userProfile) {
+      setProfileName(userProfile.name || 'User');
+      setProfilePhone(userProfile.phoneNumber || '');
+      setProfileImage(userProfile.profileImageUrl || '');
+      setImageError(false); // Reset error state when profile updates
+    }
+  }, [userProfile]);
 
   const handleMenuClick = () => {
     setDrawerOpen(true);
@@ -58,6 +76,22 @@ export default function AppBar() {
     router.push('/saved-profiles'); // Navigate to saved profiles page
   };
 
+  const handleLogout = async () => {
+    try {
+      // First sign out from Firebase
+      await signOut(auth);
+      
+      // Then clear local storage and cookies
+      localStorage.clear(); // Clear all local storage items
+      document.cookie = 'authToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+      
+      // Finally redirect to login page with a full page reload
+      window.location.replace('/auth/phone');
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
+
   const menuItems = [
     { text: 'Saved Profiles', icon: <BookmarkIcon />, onClick: handleSavedProfiles, color: '#CC1E77' },
     { 
@@ -70,7 +104,7 @@ export default function AppBar() {
       sparkle: true
     },
     { text: 'Help & Support', icon: <HelpIcon />, onClick: () => console.log('Help clicked'), color: '#D62081' },
-    { text: 'Logout', icon: <LogoutIcon />, onClick: () => console.log('Logout clicked'), color: '#E0228B' },
+    { text: 'Logout', icon: <LogoutIcon />, onClick: handleLogout, color: '#E0228B' },
   ];
 
   return (
@@ -160,7 +194,22 @@ export default function AppBar() {
                 className="w-16 h-16 rounded-full bg-white/10 backdrop-blur-lg flex items-center justify-center ring-2 ring-[#A2195E] shadow-lg relative overflow-hidden"
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-[#A2195E]/30 via-[#BA1C6C]/30 to-transparent"></div>
-                <AccountCircleIcon sx={{ fontSize: 40, color: 'white' }} />
+                {profileImage && !imageError ? (
+                  <Image
+                    src={profileImage}
+                    alt="Profile"
+                    width={64}
+                    height={64}
+                    className="w-full h-full object-cover"
+                    onError={() => {
+                      console.error('Failed to load profile image');
+                      setImageError(true);
+                    }}
+                    priority // Load this image with high priority
+                  />
+                ) : (
+                  <AccountCircleIcon sx={{ fontSize: 40, color: 'white' }} />
+                )}
               </motion.div>
               <div>
                 <motion.h3 
@@ -169,7 +218,7 @@ export default function AppBar() {
                   transition={{ delay: 0.2 }}
                   className="font-bold text-xl text-white mb-1"
                 >
-                  John Doe
+                  {profileName}
                 </motion.h3>
                 <motion.p 
                   initial={{ opacity: 0, x: -20 }}
@@ -177,7 +226,7 @@ export default function AppBar() {
                   transition={{ delay: 0.3 }}
                   className="text-sm text-white/80 font-medium"
                 >
-                  john.doe@example.com
+                  {profilePhone}
                 </motion.p>
               </div>
             </div>

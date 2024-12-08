@@ -34,12 +34,12 @@ export default function CreditMetricsGrid() {
           {metrics.map((metric, index) => (
             <article 
               key={index}
-              className="bg-gradient-to-br from-[#A2195E] to-[#8B1550] rounded-xl p-2 shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer min-h-[100px] max-w-[160px] w-full flex flex-col justify-between hover:scale-105 active:scale-95"
+              className="bg-gradient-to-br from-[#A2195E] to-[#8B1550] rounded-xl p-2 shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer w-[83px] h-[90px] flex flex-col justify-between hover:scale-105 active:scale-95"
               onClick={metric.onClick}
             >
               <div className="flex flex-col h-full">
                 <div className="flex justify-between items-start mb-auto">
-                  <span className="text-sm font-medium leading-tight text-white line-clamp-2">{metric.title}</span>
+                  <span className="text-xs font-medium leading-tight text-white line-clamp-2">{metric.title}</span>
                   <ChevronRight className="w-3.5 h-3.5 text-white/80 flex-shrink-0 mt-0.5" />
                 </div>
                 <div className="flex justify-end mt-2">

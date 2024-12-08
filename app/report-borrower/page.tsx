@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button, TextField, Checkbox, FormControlLabel, Typography, Box, Container, Radio, RadioGroup } from '@mui/material';
-import { ChevronLeft, Phone, Calendar, IndianRupee, AlertCircle, Shield, PhoneCall } from 'lucide-react';
+import { Button, TextField, Checkbox, FormControlLabel, Typography, Box, Container, Radio, RadioGroup, Modal, IconButton } from '@mui/material';
+import { ChevronLeft, Phone, Calendar, IndianRupee, AlertCircle, Shield, PhoneCall, Info, X, Users } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 
@@ -16,6 +16,9 @@ export default function ReportBorrower() {
     consent: false,
     reportType: 'report_only', // 'report_only', 'recovery_service'
   });
+
+  const [openRecoveryModal, setOpenRecoveryModal] = useState(false);
+  const [openReportModal, setOpenReportModal] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -141,6 +144,16 @@ export default function ReportBorrower() {
                             <div className="flex items-center gap-3">
                               <Shield className="w-5 h-5 text-[#A2195E]" />
                               <span className="font-semibold text-gray-800">Report Only</span>
+                              <IconButton
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  setOpenReportModal(true);
+                                }}
+                                size="small"
+                                sx={{ color: '#A2195E' }}
+                              >
+                                <Info className="w-4 h-4" />
+                              </IconButton>
                             </div>
                             <p className="text-sm text-gray-600 mt-1 ml-8">
                               Report defaulter to protect others. This information will be used to warn other lenders.
@@ -178,16 +191,20 @@ export default function ReportBorrower() {
                             <div className="flex items-center gap-3">
                               <PhoneCall className="w-5 h-5 text-[#A2195E]" />
                               <span className="font-semibold text-gray-800">Recovery Service</span>
-                              {formData.unpaidAmount && (
-                                <span className="text-sm bg-[#A2195E] text-white px-2 py-1 rounded-full">
-                                  ₹{calculateRecoveryFee()} fee
-                                </span>
-                              )}
+                              <IconButton
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  setOpenRecoveryModal(true);
+                                }}
+                                size="small"
+                                sx={{ color: '#A2195E' }}
+                              >
+                                <Info className="w-4 h-4" />
+                              </IconButton>
                             </div>
                             <p className="text-sm text-gray-600 mt-1 ml-8">
                               We'll actively help recover your money through our professional recovery service.
                             </p>
-                            <div className="ml-8 mt-2 text-sm font-medium text-[#A2195E]">2% of unpaid amount</div>
                           </div>
                         }
                         className="w-full m-0 p-3"
@@ -197,85 +214,82 @@ export default function ReportBorrower() {
                 </div>
 
                 {/* Phone Input */}
-<div className="relative">
-  <Phone className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-  <TextField
-    fullWidth
-    label="Borrower Phone Number"
-    variant="outlined"
-    value={formData.borrowerPhone}
-    onChange={handleInputChange('borrowerPhone')}
-    type="tel"
-    required
-    inputProps={{
-      pattern: '[0-9]{10}',
-      maxLength: 10,
-    }}
-    sx={{
-      '& .MuiOutlinedInput-root': {
-        paddingLeft: '2.5rem', // Adds space for the icon
-        borderRadius: '12px',
-        '&:hover fieldset': {
-          borderColor: '#A2195E', // Hover border color
-        },
-        '&.Mui-focused fieldset': {
-          borderColor: '#A2195E', // Focused border color
-        },
-      },
-      '& .MuiInputLabel-root': {
-        transform: 'translate(2.5rem, 1rem) scale(1)', // Moved further to the right
-      },
-      '& .MuiInputLabel-root.Mui-focused, & .MuiInputLabel-root.MuiFormLabel-filled': {
-        transform: 'translate(1rem, -0.5rem) scale(0.75)', // Shrinks and moves up
-      },
-      '& .MuiInputLabel-root.Mui-focused': {
-        color: '#A2195E', // Focused label color
-      },
-    }}
-  />
-</div>
+                <div className="relative">
+                  <Phone className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <TextField
+                    fullWidth
+                    label="Borrower Phone Number"
+                    variant="outlined"
+                    value={formData.borrowerPhone}
+                    onChange={handleInputChange('borrowerPhone')}
+                    type="tel"
+                    required
+                    inputProps={{
+                      pattern: '[0-9]{10}',
+                      maxLength: 10,
+                    }}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        paddingLeft: '2.5rem', // Adds space for the icon
+                        borderRadius: '12px',
+                        '&:hover fieldset': {
+                          borderColor: '#A2195E', // Hover border color
+                        },
+                        '&.Mui-focused fieldset': {
+                          borderColor: '#A2195E', // Focused border color
+                        },
+                      },
+                      '& .MuiInputLabel-root': {
+                        transform: 'translate(2.5rem, 1rem) scale(1)', // Moved further to the right
+                      },
+                      '& .MuiInputLabel-root.Mui-focused, & .MuiInputLabel-root.MuiFormLabel-filled': {
+                        transform: 'translate(1rem, -0.5rem) scale(0.75)', // Shrinks and moves up
+                      },
+                      '& .MuiInputLabel-root.Mui-focused': {
+                        color: '#A2195E', // Focused label color
+                      },
+                    }}
+                  />
+                </div>
 
-{/* Amount Input */}
-<div className="relative">
-  <IndianRupee className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-  <TextField
-    fullWidth
-    label="Unpaid Amount"
-    variant="outlined"
-    value={formData.unpaidAmount}
-    onChange={handleInputChange('unpaidAmount')}
-    type="number"
-    required
-    inputProps={{
-      min: 0,
-      step: "0.01",
-    }}
-    sx={{
-      '& .MuiOutlinedInput-root': {
-        paddingLeft: '2.5rem', // Adds space for the icon
-        borderRadius: '12px',
-        '&:hover fieldset': {
-          borderColor: '#A2195E', // Hover border color
-        },
-        '&.Mui-focused fieldset': {
-          borderColor: '#A2195E', // Focused border color
-        },
-      },
-      '& .MuiInputLabel-root': {
-        transform: 'translate(2.5rem, 1rem) scale(1)', // Moved further to the right
-      },
-      '& .MuiInputLabel-root.Mui-focused, & .MuiInputLabel-root.MuiFormLabel-filled': {
-        transform: 'translate(1rem, -0.5rem) scale(0.75)', // Shrinks and moves up
-      },
-      '& .MuiInputLabel-root.Mui-focused': {
-        color: '#A2195E', // Focused label color
-      },
-    }}
-  />
-</div>
-
-
-
+                {/* Amount Input */}
+                <div className="relative">
+                  <IndianRupee className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <TextField
+                    fullWidth
+                    label="Unpaid Amount"
+                    variant="outlined"
+                    value={formData.unpaidAmount}
+                    onChange={handleInputChange('unpaidAmount')}
+                    type="number"
+                    required
+                    inputProps={{
+                      min: 0,
+                      step: "0.01",
+                    }}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        paddingLeft: '2.5rem', // Adds space for the icon
+                        borderRadius: '12px',
+                        '&:hover fieldset': {
+                          borderColor: '#A2195E', // Hover border color
+                        },
+                        '&.Mui-focused fieldset': {
+                          borderColor: '#A2195E', // Focused border color
+                        },
+                      },
+                      '& .MuiInputLabel-root': {
+                        transform: 'translate(2.5rem, 1rem) scale(1)', // Moved further to the right
+                      },
+                      '& .MuiInputLabel-root.Mui-focused, & .MuiInputLabel-root.MuiFormLabel-filled': {
+                        transform: 'translate(1rem, -0.5rem) scale(0.75)', // Shrinks and moves up
+                      },
+                      '& .MuiInputLabel-root.Mui-focused': {
+                        color: '#A2195E', // Focused label color
+                      },
+                    }}
+                  />
+                </div>
 
                 {/* Date Input */}
                 <div className="relative">
@@ -328,7 +342,7 @@ export default function ReportBorrower() {
                     label={
                       <Typography variant="body2" className="text-gray-700">
                         {formData.reportType === 'recovery_service' 
-                          ? "I hereby give consent to make recovery calls on my behalf and agree to pay 2% of the recovered amount as service fee"
+                          ? "I hereby give consent to make recovery calls on my behalf and agree to the recovery process"
                           : "I hereby confirm that the information provided is accurate and can be used to warn other lenders"}
                       </Typography>
                     }
@@ -372,6 +386,373 @@ export default function ReportBorrower() {
           </motion.div>
         </Container>
       </div>
+
+      {/* Report Only Modal */}
+      <Modal
+        open={openReportModal}
+        onClose={() => setOpenReportModal(false)}
+        aria-labelledby="report-only-modal"
+        aria-describedby="report-only-description"
+      >
+        <Box sx={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: '95%',
+          maxWidth: '600px',
+          bgcolor: 'background.paper',
+          borderRadius: '20px',
+          boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)',
+          p: { xs: 3, sm: 4 },
+          maxHeight: { xs: '85vh', sm: '90vh' },
+          overflow: 'auto',
+          '&:focus': {
+            outline: 'none'
+          }
+        }}>
+          <div className="flex items-center justify-between mb-4">
+            <Typography variant="h6" component="h2" sx={{ 
+              color: '#A2195E', 
+              fontWeight: 600,
+              fontSize: { xs: '1.1rem', sm: '1.25rem' }
+            }}>
+              Why Report a Defaulter?
+            </Typography>
+            <IconButton 
+              onClick={() => setOpenReportModal(false)}
+              sx={{ 
+                color: 'gray',
+                '&:hover': { color: '#A2195E' }
+              }}
+            >
+              <X className="w-5 h-5" />
+            </IconButton>
+          </div>
+
+          {/* Important Notice */}
+          <div className="bg-orange-50 rounded-xl p-3 mb-5 border border-orange-200">
+            <div className="flex gap-2">
+              <AlertCircle className="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5" />
+              <Typography variant="body2" sx={{ 
+                color: 'rgb(194,65,12)',
+                fontSize: { xs: '0.875rem', sm: '0.9375rem' }
+              }}>
+                Has someone broken your trust by not returning borrowed money? Help protect others from experiencing the same by reporting the defaulter.
+              </Typography>
+            </div>
+          </div>
+          
+          <div className="space-y-4">
+            {/* Benefits */}
+            <div className="relative">
+              {/* Vertical Line */}
+              <div className="absolute left-4 top-4 bottom-4 w-0.5 bg-pink-100"></div>
+              
+              {/* Points */}
+              <div className="space-y-6">
+                <div className="flex gap-3">
+                  <div className="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center flex-shrink-0 relative z-10">
+                    <Shield className="w-4 h-4 text-[#A2195E]" />
+                  </div>
+                  <div className="flex-1">
+                    <Typography variant="subtitle1" sx={{ 
+                      fontWeight: 600, 
+                      mb: 0.5,
+                      fontSize: { xs: '0.9375rem', sm: '1rem' }
+                    }}>
+                      Protect the Community
+                    </Typography>
+                    <Typography variant="body2" sx={{ 
+                      color: 'text.secondary',
+                      fontSize: { xs: '0.875rem', sm: '0.9375rem' }
+                    }}>
+                      Your report helps other lenders make informed decisions before lending money. This creates a safer lending environment for everyone.
+                    </Typography>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <div className="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center flex-shrink-0 relative z-10">
+                    <AlertCircle className="w-4 h-4 text-[#A2195E]" />
+                  </div>
+                  <div className="flex-1">
+                    <Typography variant="subtitle1" sx={{ 
+                      fontWeight: 600, 
+                      mb: 0.5,
+                      fontSize: { xs: '0.9375rem', sm: '1rem' }
+                    }}>
+                      Early Warning System
+                    </Typography>
+                    <Typography variant="body2" sx={{ 
+                      color: 'text.secondary',
+                      fontSize: { xs: '0.875rem', sm: '0.9375rem' }
+                    }}>
+                      When someone checks a borrower's history, they'll see your report as a warning sign, helping them avoid potential defaults.
+                    </Typography>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <div className="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center flex-shrink-0 relative z-10">
+                    <PhoneCall className="w-4 h-4 text-[#A2195E]" />
+                  </div>
+                  <div className="flex-1">
+                    <Typography variant="subtitle1" sx={{ 
+                      fontWeight: 600, 
+                      mb: 0.5,
+                      fontSize: { xs: '0.9375rem', sm: '1rem' }
+                    }}>
+                      Future Recovery Options
+                    </Typography>
+                    <Typography variant="body2" sx={{ 
+                      color: 'text.secondary',
+                      fontSize: { xs: '0.875rem', sm: '0.9375rem' }
+                    }}>
+                      Even if you choose to only report now, you can always opt for our recovery service later if needed.
+                    </Typography>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <div className="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center flex-shrink-0 relative z-10">
+                    <Users className="w-4 h-4 text-[#A2195E]" />
+                  </div>
+                  <div className="flex-1">
+                    <Typography variant="subtitle1" sx={{ 
+                      fontWeight: 600, 
+                      mb: 0.5,
+                      fontSize: { xs: '0.9375rem', sm: '1rem' }
+                    }}>
+                      Build Trust
+                    </Typography>
+                    <Typography variant="body2" sx={{ 
+                      color: 'text.secondary',
+                      fontSize: { xs: '0.875rem', sm: '0.9375rem' }
+                    }}>
+                      Your report contributes to building a trusted lending community. Together, we can make informal lending safer for everyone.
+                    </Typography>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <Button
+            onClick={() => setOpenReportModal(false)}
+            fullWidth
+            variant="contained"
+            sx={{
+              mt: 4,
+              height: { xs: '44px', sm: '48px' },
+              background: 'linear-gradient(to right, #A2195E, #8B1550)',
+              '&:hover': {
+                background: 'linear-gradient(to right, #8B1550, #A2195E)',
+              },
+              borderRadius: '12px',
+              textTransform: 'none',
+              fontSize: { xs: '0.9375rem', sm: '1rem' },
+              fontWeight: '600',
+            }}
+          >
+            Got it
+          </Button>
+        </Box>
+      </Modal>
+
+      {/* Recovery Service Process Modal */}
+      <Modal
+        open={openRecoveryModal}
+        onClose={() => setOpenRecoveryModal(false)}
+        aria-labelledby="recovery-process-modal"
+        aria-describedby="recovery-process-description"
+      >
+        <Box sx={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: '95%',
+          maxWidth: '600px',
+          bgcolor: 'background.paper',
+          borderRadius: '20px',
+          boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)',
+          p: { xs: 3, sm: 4 },
+          maxHeight: { xs: '85vh', sm: '90vh' },
+          overflow: 'auto',
+          '&:focus': {
+            outline: 'none'
+          }
+        }}>
+          <div className="flex items-center justify-between mb-4">
+            <Typography variant="h6" component="h2" sx={{ 
+              color: '#A2195E', 
+              fontWeight: 600,
+              fontSize: { xs: '1.1rem', sm: '1.25rem' }
+            }}>
+              Recovery Service Process
+            </Typography>
+            <IconButton 
+              onClick={() => setOpenRecoveryModal(false)}
+              sx={{ 
+                color: 'gray',
+                '&:hover': { color: '#A2195E' }
+              }}
+            >
+              <X className="w-5 h-5" />
+            </IconButton>
+          </div>
+
+          {/* Important Notice */}
+          <div className="bg-orange-50 rounded-xl p-3 mb-5 border border-orange-200">
+            <div className="flex gap-2">
+              <AlertCircle className="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5" />
+              <Typography variant="body2" sx={{ 
+                color: 'rgb(194,65,12)',
+                fontSize: { xs: '0.875rem', sm: '0.9375rem' }
+              }}>
+                We understand that informal lending is often based on trust. While having proof of lending (like messages, transactions, or documents) increases recovery chances, we'll still assist even without formal documentation.
+              </Typography>
+            </div>
+          </div>
+          
+          <div className="space-y-4">
+            {/* Process Steps */}
+            <div className="relative">
+              {/* Vertical Line */}
+              <div className="absolute left-4 top-4 bottom-4 w-0.5 bg-pink-100"></div>
+              
+              {/* Steps */}
+              <div className="space-y-6">
+                <div className="flex gap-3">
+                  <div className="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center flex-shrink-0 relative z-10">
+                    <span className="text-[#A2195E] font-semibold">1</span>
+                  </div>
+                  <div className="flex-1">
+                    <Typography variant="subtitle1" sx={{ 
+                      fontWeight: 600, 
+                      mb: 0.5,
+                      fontSize: { xs: '0.9375rem', sm: '1rem' }
+                    }}>
+                      Initial Verification
+                    </Typography>
+                    <Typography variant="body2" sx={{ 
+                      color: 'text.secondary',
+                      fontSize: { xs: '0.875rem', sm: '0.9375rem' }
+                    }}>
+                      To prevent fraudulent reports, we first verify with the borrower about receiving the loan. Their acknowledgment serves as proof for proceeding with recovery. This step protects both genuine lenders and borrowers.
+                    </Typography>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <div className="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center flex-shrink-0 relative z-10">
+                    <span className="text-[#A2195E] font-semibold">2</span>
+                  </div>
+                  <div className="flex-1">
+                    <Typography variant="subtitle1" sx={{ 
+                      fontWeight: 600, 
+                      mb: 0.5,
+                      fontSize: { xs: '0.9375rem', sm: '1rem' }
+                    }}>
+                      Documentation Review
+                    </Typography>
+                    <Typography variant="body2" sx={{ 
+                      color: 'text.secondary',
+                      fontSize: { xs: '0.875rem', sm: '0.9375rem' }
+                    }}>
+                      If you have any proof of lending (WhatsApp messages, UPI transactions, written notes, etc.), you can provide them to strengthen the recovery case. However, this is optional and we'll proceed even without formal documentation.
+                    </Typography>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <div className="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center flex-shrink-0 relative z-10">
+                    <span className="text-[#A2195E] font-semibold">3</span>
+                  </div>
+                  <div className="flex-1">
+                    <Typography variant="subtitle1" sx={{ 
+                      fontWeight: 600, 
+                      mb: 0.5,
+                      fontSize: { xs: '0.9375rem', sm: '1rem' }
+                    }}>
+                      Professional Communication
+                    </Typography>
+                    <Typography variant="body2" sx={{ 
+                      color: 'text.secondary',
+                      fontSize: { xs: '0.875rem', sm: '0.9375rem' }
+                    }}>
+                      Once verified, our recovery experts initiate professional communication with the borrower through calls and messages. We maintain a respectful approach while representing you.
+                    </Typography>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <div className="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center flex-shrink-0 relative z-10">
+                    <span className="text-[#A2195E] font-semibold">4</span>
+                  </div>
+                  <div className="flex-1">
+                    <Typography variant="subtitle1" sx={{ 
+                      fontWeight: 600, 
+                      mb: 0.5,
+                      fontSize: { xs: '0.9375rem', sm: '1rem' }
+                    }}>
+                      Resolution & Recovery
+                    </Typography>
+                    <Typography variant="body2" sx={{ 
+                      color: 'text.secondary',
+                      fontSize: { xs: '0.875rem', sm: '0.9375rem' }
+                    }}>
+                      We work to establish a repayment plan and facilitate the recovery of your funds through a structured and professional approach.
+                    </Typography>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <div className="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center flex-shrink-0 relative z-10">
+                    <span className="text-[#A2195E] font-semibold">5</span>
+                  </div>
+                  <div className="flex-1">
+                    <Typography variant="subtitle1" sx={{ 
+                      fontWeight: 600, 
+                      mb: 0.5,
+                      fontSize: { xs: '0.9375rem', sm: '1rem' }
+                    }}>
+                      Progress Updates
+                    </Typography>
+                    <Typography variant="body2" sx={{ 
+                      color: 'text.secondary',
+                      fontSize: { xs: '0.875rem', sm: '0.9375rem' }
+                    }}>
+                      You'll receive regular updates about the recovery progress through our platform, keeping you informed at every step of the process.
+                    </Typography>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <Button
+            onClick={() => setOpenRecoveryModal(false)}
+            fullWidth
+            variant="contained"
+            sx={{
+              mt: 4,
+              height: { xs: '44px', sm: '48px' },
+              background: 'linear-gradient(to right, #A2195E, #8B1550)',
+              '&:hover': {
+                background: 'linear-gradient(to right, #8B1550, #A2195E)',
+              },
+              borderRadius: '12px',
+              textTransform: 'none',
+              fontSize: { xs: '0.9375rem', sm: '1rem' },
+              fontWeight: '600',
+            }}
+          >
+            Got it
+          </Button>
+        </Box>
+      </Modal>
     </div>
   );
 }

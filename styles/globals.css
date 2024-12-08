@@ -784,8 +784,8 @@
 }
 
 .otp-input {
-  width: 50px;
-  height: 60px;
+  width: 45px;
+  height: 55px;
   border: 2px solid #e1e1e1;
   border-radius: 12px;
   font-size: 1.5rem;
@@ -793,6 +793,15 @@
   text-align: center;
   transition: all 0.3s ease;
   background: white;
+  color: #333;
+  -webkit-appearance: none;
+  -moz-appearance: textfield;
+}
+
+.otp-input::-webkit-outer-spin-button,
+.otp-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 .otp-input:focus {
@@ -800,6 +809,50 @@
   border-color: #A2195E;
   box-shadow: 0 4px 12px rgba(162, 25, 94, 0.15);
   transform: translateY(-2px);
+}
+
+.otp-input:disabled {
+  background: #f5f5f5;
+  border-color: #e1e1e1;
+  cursor: not-allowed;
+}
+
+.otp-input.error {
+  border-color: #ef4444;
+  animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+@keyframes shake {
+  10%, 90% {
+    transform: translate3d(-1px, 0, 0);
+  }
+  20%, 80% {
+    transform: translate3d(2px, 0, 0);
+  }
+  30%, 50%, 70% {
+    transform: translate3d(-2px, 0, 0);
+  }
+  40%, 60% {
+    transform: translate3d(2px, 0, 0);
+  }
+}
+
+/* Loading Animation */
+.loading-spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  margin-right: 8px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .back-button {
@@ -830,23 +883,5 @@
   to {
     opacity: 1;
     transform: translateY(0);
-  }
-}
-
-/* Loading Animation */
-.loading-spinner {
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  margin-right: 8px;
-  border: 3px solid rgba(255, 255, 255, 0.3);
-  border-radius: 50%;
-  border-top-color: white;
-  animation: spin 1s ease-in-out infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
   }
 }
