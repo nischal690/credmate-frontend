@@ -21,6 +21,26 @@ export default function Home() {
     console.log('Homepage useEffect running');
     console.log('Current userProfile state:', userProfile);
     
+    // Log all localStorage contents
+    console.log('=== All localStorage Contents ===');
+    const allStorageData = Object.keys(localStorage).reduce((obj, key) => {
+      try {
+        const value = localStorage.getItem(key);
+        obj[key] = value ? JSON.parse(value) : null;
+      } catch (e) {
+        obj[key] = localStorage.getItem(key); // Keep as string if can't parse JSON
+      }
+      return obj;
+    }, {} as Record<string, any>);
+    
+    console.log('localStorage contents:', allStorageData);
+    
+    // Log specific items of interest
+    console.log('=== Important Items ===');
+    console.log('User Profile:', localStorage.getItem('user_profile'));
+    console.log('Saved Profiles:', localStorage.getItem('savedProfiles'));
+    console.log('Profile Last Fetched:', localStorage.getItem('profile_last_fetched'));
+
     // Log the current profile data
     const profileData = localStorage.getItem('user_profile');
     console.log('Homepage found profile data in localStorage:', profileData);

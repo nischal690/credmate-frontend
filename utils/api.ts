@@ -35,4 +35,46 @@ api.interceptors.response.use(
     }
 );
 
+// Types for saved profiles
+interface SavedProfile {
+    id: string;
+    name: string;
+    date_of_birth: string;
+    businessType: string;
+    profileImageUrl: string;
+    phoneNumber: string;
+    aadhaarNumber: string | null;
+    panNumber: string | null;
+    createdAt: string;
+    updatedAt: string;
+    transactionCount: number;
+    savedAt: string;
+}
+
+interface SavedProfilesResponse {
+    savedProfiles: SavedProfile[];
+}
+
+// Function to fetch and store saved profiles
+export const fetchAndStoreSavedProfiles = async (): Promise<SavedProfile[]> => {
+    try {
+        const response = await api.get<SavedProfilesResponse>('/user/saved-profiles');
+        const savedProfiles = response.data.savedProfiles;
+        
+        // Store in localStorage
+        localStorage.setItem('savedProfiles', JSON.stringify(savedProfiles));
+        
+        return savedProfiles;
+    } catch (error) {
+        console.error('Error fetching saved profiles:', error);
+        throw error;
+    }
+};
+
+// Function to get saved profiles from localStorage
+export const getSavedProfilesFromStorage = (): SavedProfile[] => {
+    const profiles = localStorage.getItem('savedProfiles');
+    return profiles ? JSON.parse(profiles) : [];
+};
+
 export default api;

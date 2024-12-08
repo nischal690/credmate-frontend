@@ -3,7 +3,9 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { API_ENDPOINTS } from '../lib/api/config';
 import apiService from '../lib/api/apiService';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '../../lib/firebase';
+import { fetchAndStoreSavedProfiles } from '../../utils/api';
 
 interface UserProfile {
   [key: string]: any;
@@ -14,6 +16,7 @@ interface UserContextType {
   isLoading: boolean;
   error: string | null;
   refreshProfile: () => Promise<void>;
+  refreshSavedProfiles: () => Promise<void>;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -30,7 +33,6 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
   const fetchProfile = async (): Promise<UserProfile | null> => {
     try {
-      const auth = getAuth();
       const user = auth.currentUser;
       
       if (!user) {
@@ -114,10 +116,17 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const refreshSavedProfiles = async () => {
+    try {
+      await fetchAndStoreSavedProfiles();
+    } catch (error) {
+      console.error('Error fetching saved profiles:', error);
+    }
+  };
+
   // Listen for auth state changes
   useEffect(() => {
     console.log('Setting up auth state listener');
-    const auth = getAuth();
     
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       console.log('Auth state changed. User:', user?.uid);
@@ -137,6 +146,9 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             console.log('Fetching fresh profile');
             await refreshProfile();
           }
+
+          // Fetch saved profiles when user is authenticated
+          await refreshSavedProfiles();
         };
         
         initializeProfile();
@@ -151,8 +163,14 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <UserContext.Provider value={{ userProfile, isLoading, error, refreshProfile }}>
-      {authInitialized ? children : null}
+    <UserContext.Provider value={{ 
+      userProfile, 
+      isLoading, 
+      error, 
+      refreshProfile,
+      refreshSavedProfiles 
+    }}>
+      {children}
     </UserContext.Provider>
   );
 }
