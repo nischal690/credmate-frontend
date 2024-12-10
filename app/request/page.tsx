@@ -9,6 +9,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircleIcon, ChartBarIcon, ClockIcon, UserGroupIcon } from '@heroicons/react/24/outline';
 import ReactConfetti from 'react-confetti';
 
+interface Profile {
+  id: string;
+  name: string;
+  mobile: string;
+  image: string;
+}
+
 const StyledTextField = styled(TextField)({
   '& .MuiOutlinedInput-root': {
     borderRadius: '12px',
@@ -31,13 +38,8 @@ const StyledTextField = styled(TextField)({
   },
 });
 
-// Mock saved profiles data
-const savedProfiles = [
-  { id: 1, name: 'John Doe', mobile: '+91 9876543210', image: '/images/saved-profiles.svg' },
-  { id: 2, name: 'Jane Smith', mobile: '+91 9876543211', image: '/images/saved-profiles.svg' },
-];
-
 const RequestLoanPage = () => {
+  const [savedProfiles, setSavedProfiles] = useState<Profile[]>([]);
   const [requestType, setRequestType] = useState('saved');
   const [selectedProfile, setSelectedProfile] = useState<number | null>(null);
   const [mobileNumber, setMobileNumber] = useState('');
@@ -51,6 +53,19 @@ const RequestLoanPage = () => {
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [selectedLender, setSelectedLender] = useState('ABC Finance');
   const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
+
+  useEffect(() => {
+    const profiles = localStorage.getItem('savedProfiles');
+    if (profiles) {
+      const parsedProfiles = JSON.parse(profiles);
+      // Ensure each profile has an image, if not set a default one
+      const profilesWithImages = parsedProfiles.map((profile: any) => ({
+        ...profile,
+        image: profile.image || '/images/saved-profiles.svg'
+      }));
+      setSavedProfiles(profilesWithImages);
+    }
+  }, []);
 
   useEffect(() => {
     setWindowSize({

@@ -76,6 +76,11 @@ export default function AppBar() {
     router.push('/saved-profiles'); // Navigate to saved profiles page
   };
 
+  const handleSupport = () => {
+    setDrawerOpen(false); // Close the drawer
+    router.push('/support'); // Navigate to support page
+  };
+
   const handleLogout = async () => {
     try {
       // First sign out from Firebase
@@ -103,7 +108,7 @@ export default function AppBar() {
       highlight: true,
       sparkle: true
     },
-    { text: 'Help & Support', icon: <HelpIcon />, onClick: () => console.log('Help clicked'), color: '#D62081' },
+    { text: 'Help & Support', icon: <HelpIcon />, onClick: handleSupport, color: '#D62081' },
     { text: 'Logout', icon: <LogoutIcon />, onClick: handleLogout, color: '#E0228B' },
   ];
 

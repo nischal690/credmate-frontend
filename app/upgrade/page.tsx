@@ -8,6 +8,7 @@ import DiamondIcon from '@mui/icons-material/Diamond';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import { useState, useRef, useEffect } from 'react';
 import toast from 'react-hot-toast';
+import Script from 'next/script';
 
 interface Plan {
   name: string;
@@ -104,8 +105,171 @@ export default function UpgradePage() {
     };
   }, [showExpertModal]);
 
+  const handlePayment = async (plan: Plan) => {
+    try {
+      console.log('Starting payment process for plan:', plan.name);
+      
+      // Load Razorpay
+      const res = await loadRazorpay();
+      if (!res) {
+        console.error('Razorpay SDK failed to load');
+        toast.error('Razorpay SDK failed to load');
+        return;
+      }
+      
+      console.log('Razorpay SDK loaded successfully');
+
+      // Convert price string to number (remove ₹ and comma)
+      const amount = parseInt(plan.price.replace('₹', '').replace(',', '')) * 100; // Convert to paise
+      console.log('Calculated amount:', amount);
+
+      // Check if Razorpay key exists
+      const razorpayKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
+      if (!razorpayKey) {
+        console.error('Razorpay key is missing');
+        toast.error('Payment configuration error');
+        return;
+      }
+
+      // First, create an order on your backend
+      try {
+        const orderResponse = await fetch('/api/create-razorpay-order', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            amount: amount,
+            planName: plan.name
+          }),
+        });
+
+        if (!orderResponse.ok) {
+          throw new Error('Failed to create order');
+        }
+
+        const orderData = await orderResponse.json();
+        console.log('Order created:', orderData);
+
+        const options = {
+          key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+          amount: amount,
+          currency: 'INR',
+          name: 'Credmate',
+          description: `Payment for ${plan.name}`,
+          order_id: orderData.id,
+          handler: async function (response: any) {
+            console.log('Payment success response:', response);
+            
+            // Verify payment on backend
+            try {
+              const verifyResponse = await fetch('/api/verify-payment', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_signature: response.razorpay_signature
+                }),
+              });
+
+              if (!verifyResponse.ok) {
+                throw new Error('Payment verification failed');
+              }
+
+              const verifyData = await verifyResponse.json();
+              if (verifyData.verified) {
+                toast.success('Payment successful!');
+                // Add additional logic here like updating user subscription status
+              } else {
+                throw new Error('Payment verification failed');
+              }
+            } catch (verifyError) {
+              console.error('Verification error:', verifyError);
+              toast.error('Payment verification failed');
+            }
+          },
+          prefill: {
+            name: '', // You can add user's name here
+            email: '', // You can add user's email here
+            contact: '', // You can add user's phone number here
+          },
+          config: {
+            display: {
+              blocks: {
+                upi: {
+                  name: 'Pay using UPI',
+                  instruments: [
+                    {
+                      method: 'upi'
+                    }
+                  ]
+                },
+                other: {
+                  name: 'Other Payment Methods',
+                  instruments: [
+                    {
+                      method: 'card'
+                    },
+                    {
+                      method: 'netbanking'
+                    }
+                  ]
+                }
+              },
+              sequence: ['block.upi', 'block.other'],
+              preferences: {
+                show_default_blocks: true
+              }
+            }
+          },
+          theme: {
+            color: '#A2195E',
+          },
+          modal: {
+            ondismiss: function() {
+              console.log('Payment modal closed');
+              toast.error('Payment cancelled');
+            }
+          }
+        };
+
+        console.log('Initializing Razorpay with options:', { ...options, key: '***' });
+        const paymentObject = new (window as any).Razorpay(options);
+        paymentObject.open();
+      } catch (orderError) {
+        console.error('Order creation error:', orderError);
+        toast.error('Failed to create payment order');
+      }
+    } catch (error) {
+      console.error('Payment error:', error);
+      toast.error('Something went wrong. Please try again.');
+    }
+  };
+
+  // Function to load Razorpay script
+  const loadRazorpay = () => {
+    return new Promise((resolve) => {
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.onload = () => {
+        resolve(true);
+      };
+      script.onerror = () => {
+        resolve(false);
+      };
+      document.body.appendChild(script);
+    });
+  };
+
   return (
     <div className="min-h-screen bg-white overflow-y-auto">
+      <Script
+        src="https://checkout.razorpay.com/v1/checkout.js"
+        strategy="lazyOnload"
+      />
       <main className="flex-1">
         <motion.div 
           ref={containerRef}
@@ -259,6 +423,7 @@ export default function UpgradePage() {
                         <motion.button
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
+                          onClick={() => handlePayment(plan)}
                           className={`w-full py-3 px-6 rounded-xl text-white font-semibold mt-6 ${
                             plan.isPriority
                               ? 'bg-gradient-to-r from-[#FFD700] to-[#FFA500] hover:from-[#FFE55C] hover:to-[#FFB52E]'

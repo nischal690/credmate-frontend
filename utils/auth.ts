@@ -1,3 +1,5 @@
+import { auth } from '../lib/firebase';
+
 interface AuthTokens {
     accessToken: string;
     refreshToken: string;
@@ -10,7 +12,12 @@ const AUTH_STORAGE_KEY = 'credmate_auth_tokens';
 
 export const storeAuthTokens = (tokens: AuthTokens): void => {
     try {
-        localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(tokens));
+        // Add current server time when storing tokens
+        const currentTime = new Date().toISOString();
+        localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({
+            ...tokens,
+            timestamp: currentTime,
+        }));
     } catch (error) {
         console.error('Error storing auth tokens:', error);
     }
@@ -28,9 +35,12 @@ export const getStoredAuthTokens = (): AuthTokens | null => {
 
 export const clearAuthTokens = (): void => {
     try {
-        localStorage.removeItem(AUTH_STORAGE_KEY);
+        // Sign out from Firebase
+        auth.signOut().catch(error => {
+            console.error('Error signing out:', error);
+        });
     } catch (error) {
-        console.error('Error clearing auth tokens:', error);
+        console.error('Error clearing auth state:', error);
     }
 };
 
@@ -42,7 +52,8 @@ export const isAccessTokenExpired = (): boolean => {
     const currentTime = new Date().getTime();
     const expirationTime = tokenTimestamp + (tokens.accessTokenExpiresIn * 1000);
 
-    return currentTime >= expirationTime;
+    // Add a 5-second buffer to handle slight time differences
+    return (currentTime + 5000) >= expirationTime;
 };
 
 export const isRefreshTokenExpired = (): boolean => {
@@ -53,7 +64,8 @@ export const isRefreshTokenExpired = (): boolean => {
     const currentTime = new Date().getTime();
     const expirationTime = tokenTimestamp + (tokens.refreshTokenExpiresIn * 1000);
 
-    return currentTime >= expirationTime;
+    // Add a 5-second buffer to handle slight time differences
+    return (currentTime + 5000) >= expirationTime;
 };
 
 export const refreshAccessToken = async (): Promise<boolean> => {
@@ -68,9 +80,11 @@ export const refreshAccessToken = async (): Promise<boolean> => {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'X-Client-Time': new Date().toISOString(), // Add client timestamp
             },
             body: JSON.stringify({
-                refreshToken: tokens.refreshToken
+                refreshToken: tokens.refreshToken,
+                clientTime: new Date().toISOString(), // Include client time in request body
             }),
         });
 
@@ -94,16 +108,18 @@ export const refreshAccessToken = async (): Promise<boolean> => {
 };
 
 export const getValidAccessToken = async (): Promise<string | null> => {
-    const tokens = getStoredAuthTokens();
-    if (!tokens) return null;
+    try {
+        const user = auth.currentUser;
+        if (!user) {
+            console.log('No authenticated user found');
+            return null;
+        }
 
-    if (isAccessTokenExpired()) {
-        const refreshSuccess = await refreshAccessToken();
-        if (!refreshSuccess) return null;
-        
-        const newTokens = getStoredAuthTokens();
-        return newTokens?.accessToken || null;
+        // Force refresh to ensure the token is not expired
+        const token = await user.getIdToken(true);
+        return token;
+    } catch (error) {
+        console.error('Error getting Firebase ID token:', error);
+        return null;
     }
-
-    return tokens.accessToken;
 };

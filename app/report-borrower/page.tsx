@@ -6,6 +6,9 @@ import { Button, TextField, Checkbox, FormControlLabel, Typography, Box, Contain
 import { ChevronLeft, Phone, Calendar, IndianRupee, AlertCircle, Shield, PhoneCall, Info, X, Users } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
+import { auth } from '../../lib/firebase';
+
+const baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 export default function ReportBorrower() {
   const router = useRouter();
@@ -19,9 +22,17 @@ export default function ReportBorrower() {
 
   const [openRecoveryModal, setOpenRecoveryModal] = useState(false);
   const [openReportModal, setOpenReportModal] = useState(false);
+  const [warningMessage, setWarningMessage] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Prevent submission if there's a warning message
+    if (warningMessage) {
+      console.log('Form submission blocked due to warning:', warningMessage);
+      return;
+    }
+
     try {
       console.log('Form submitted:', formData);
       const recoveryFee = formData.reportType === 'recovery_service' 
@@ -34,8 +45,72 @@ export default function ReportBorrower() {
     }
   };
 
-  const handleInputChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [field]: e.target.value });
+  const handleInputChange = (field: string) => async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (field === 'borrowerPhone') {
+      // Only allow digits and limit to 10 characters
+      const cleanNumber = e.target.value.replace(/[^\d]/g, '').slice(0, 10);
+      setFormData({ ...formData, [field]: cleanNumber });
+
+      // Make API call when 10 digits are entered
+      if (cleanNumber.length === 10) {
+        try {
+          const user = auth.currentUser;
+          if (!user) {
+            console.error('User not authenticated. Please login again.');
+            return;
+          }
+
+          console.log('Making API call for number:', cleanNumber);
+          const idToken = await user.getIdToken(true);
+          const formattedNumber = `+91${cleanNumber}`;
+          
+          const apiUrl = `${baseURL}/search/mobile/${formattedNumber}`;
+          console.log('Calling API endpoint:', apiUrl);
+          const response = await fetch(apiUrl, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${idToken}`,
+              'Content-Type': 'application/json'
+            }
+          });
+
+          if (!response.ok) {
+            console.error('API Error:', {
+              status: response.status,
+              statusText: response.statusText,
+              url: apiUrl
+            });
+            setWarningMessage(null);
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const data = await response.json();
+          console.log('API Response:', data);
+
+          // Add detailed logging to debug
+          console.log('Checking conditions:', {
+            responseOk: response.ok,
+            hasName: !!data.name,
+            name: data.name,
+            fullData: data
+          });
+
+          // Adjusted condition to check direct properties
+          if (response.ok && data.name) {
+            console.log('Setting warning message for name:', data.name);
+            setWarningMessage(`The phone number belongs to ${data.name} who is already a part of the Credmate community. Only those who are not part of Credmate community can be reported.`);
+          } else {
+            console.log('Clearing warning message');
+            setWarningMessage(null);
+          }
+
+        } catch (error) {
+          console.error('Error fetching data:', error);
+        }
+      }
+    } else {
+      setFormData({ ...formData, [field]: e.target.value });
+    }
   };
 
   const calculateRecoveryFee = () => {
@@ -218,7 +293,7 @@ export default function ReportBorrower() {
                   <Phone className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <TextField
                     fullWidth
-                    label="Borrower Phone Number"
+                    label="Borrower's Phone Number"
                     variant="outlined"
                     value={formData.borrowerPhone}
                     onChange={handleInputChange('borrowerPhone')}
@@ -251,6 +326,25 @@ export default function ReportBorrower() {
                     }}
                   />
                 </div>
+
+                {warningMessage && (
+                  <Box sx={{ 
+                    mt: 2, 
+                    p: 2, 
+                    bgcolor: '#FFF4E5', 
+                    borderRadius: 1,
+                    border: '1px solid #FFB74D',
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: 1,
+                    width: '100%'  // Added full width
+                  }}>
+                    <AlertCircle size={20} className="text-orange-500 mt-0.5" />
+                    <Typography color="warning.dark" sx={{ flex: 1 }}>
+                      {warningMessage}
+                    </Typography>
+                  </Box>
+                )}
 
                 {/* Amount Input */}
                 <div className="relative">
@@ -359,7 +453,7 @@ export default function ReportBorrower() {
                     variant="contained"
                     fullWidth
                     size="large"
-                    disabled={!formData.consent}
+                    disabled={!formData.consent || !!warningMessage}
                     sx={{
                       height: '56px',
                       background: 'linear-gradient(to right, #A2195E, #8B1550)',
@@ -368,6 +462,8 @@ export default function ReportBorrower() {
                       },
                       '&:disabled': {
                         background: '#e0e0e0',
+                        opacity: 0.7,
+                        cursor: 'not-allowed'
                       },
                       borderRadius: '14px',
                       textTransform: 'none',

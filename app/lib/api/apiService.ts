@@ -45,8 +45,7 @@ class ApiService {
           const refreshToken = localStorage.getItem('refreshToken');
           if (refreshToken && originalRequest) {
             try {
-              const response = await this.post<RefreshTokenResponse>('/auth/refresh-token', { refreshToken });
-              const { token, expiresIn } = response.data;
+              const { token, expiresIn } = await this.post<RefreshTokenResponse>('/auth/refresh-token', { refreshToken });
               localStorage.setItem('token', token);
               if (expiresIn) {
                 localStorage.setItem('expiresIn', expiresIn.toString());

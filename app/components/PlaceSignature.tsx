@@ -1,8 +1,8 @@
 'use client'
 
 import React, { useEffect, useRef, useState } from 'react'
-import { Document, Page } from 'react-pdf' // react-pdf library for rendering PDFs
-import { Rnd } from 'react-rnd' // react-rnd library for draggable/resizable elements
+import { Document, Page, pdfjs } from 'react-pdf'
+import { Rnd } from 'react-rnd'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { Check } from 'lucide-react'
@@ -32,12 +32,10 @@ export default function PlaceSignature({
   const [rotation, setRotation] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
   const [isResizing, setIsResizing] = useState(false)
-  const [isRotating, setIsRotating] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [pdfDimensions, setPdfDimensions] = useState({ width: 600, height: 800 })
   const containerRef = useRef<HTMLDivElement>(null)
-  const signatureRef = useRef<HTMLDivElement>(null)
-  const rotationStartAngle = useRef<number>(0)
 
   useEffect(() => {
     // Only get signature from localStorage, PDF is now hardcoded
@@ -55,53 +53,6 @@ export default function PlaceSignature({
     console.error('Error loading PDF:', error)
     setError('Failed to load PDF document. Please try again.')
     setIsLoading(false)
-  }
-
-  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.target === signatureRef.current) {
-      setIsDragging(true)
-    }
-  }
-
-  const handleMouseMove = (e: MouseEvent) => {
-    if (isDragging && containerRef.current && signatureRef.current) {
-      const containerRect = containerRef.current.getBoundingClientRect()
-      const newX = e.clientX - containerRect.left - size.width / 2
-      const newY = e.clientY - containerRect.top - size.height / 2
-      setPosition({ x: Math.max(newX, 0), y: Math.max(newY, 0) })
-    } else if (isResizing && containerRef.current) {
-      const containerRect = containerRef.current.getBoundingClientRect()
-      const newWidth = e.clientX - containerRect.left - position.x
-      const newHeight = e.clientY - containerRect.top - position.y
-      setSize({ width: Math.max(newWidth, 50), height: Math.max(newHeight, 50) }) // Minimum size
-    } else if (isRotating && containerRef.current && signatureRef.current) {
-      const containerRect = containerRef.current.getBoundingClientRect()
-      const centerX = position.x + size.width / 2
-      const centerY = position.y + size.height / 2
-      const angle = Math.atan2(e.clientY - containerRect.top - centerY, e.clientX - containerRect.left - centerX)
-      const angleInDegrees = angle * (180 / Math.PI)
-      setRotation(angleInDegrees - rotationStartAngle.current)
-    }
-  }
-
-  const handleResizeStart = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    setIsResizing(true)
-  }
-
-  const handleRotateStart = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    const containerRect = containerRef.current?.getBoundingClientRect()
-    if (containerRect) {
-      const centerX = position.x + size.width / 2
-      const centerY = position.y + size.height / 2
-      const angle = Math.atan2(
-        e.clientY - containerRect.top - centerY,
-        e.clientX - containerRect.left - centerX
-      )
-      rotationStartAngle.current = angle * (180 / Math.PI)
-    }
-    setIsRotating(true)
   }
 
   const handleConfirm = () => {
@@ -133,7 +84,7 @@ export default function PlaceSignature({
 
       {/* PDF Viewer */}
       <main className="flex-1 flex justify-center items-center p-4">
-        <div className="relative">
+        <div className="relative" ref={containerRef}>
           <Document
             file={pdfUrl}
             onLoadSuccess={onDocumentLoadSuccess}
@@ -170,8 +121,22 @@ export default function PlaceSignature({
                 width: 100,
                 height: 50,
               }}
-              ref={signatureRef}
-              resizeHandleStyles={{}}
+              position={position}
+              size={size}
+              onDragStart={() => setIsDragging(true)}
+              onDragStop={(e, d) => {
+                setPosition({ x: d.x, y: d.y });
+                setIsDragging(false);
+              }}
+              onResizeStart={() => setIsResizing(true)}
+              onResizeStop={(e, direction, ref, delta, position) => {
+                setSize({
+                  width: ref.offsetWidth,
+                  height: ref.offsetHeight,
+                });
+                setPosition(position);
+                setIsResizing(false);
+              }}
               className="absolute cursor-move"
             >
               <img
@@ -182,38 +147,49 @@ export default function PlaceSignature({
                   height: '100%',
                   objectFit: 'contain',
                   pointerEvents: 'none',
+                  transform: `rotate(${rotation}deg)`
                 }}
               />
             </Rnd>
           )}
         </div>
-        <div className="p-4 flex justify-between items-center">
+      </main>
+
+      {/* Navigation */}
+      <footer className="bg-white shadow-lg p-4">
+        <div className="flex justify-between items-center max-w-4xl mx-auto">
           <button
-            onClick={() => setPageNumber((page) => Math.max(page - 1, 1))}
-            disabled={pageNumber <= 1}
-            className="px-3 py-1 bg-pink-100 rounded-md text-pink-700 disabled:opacity-50"
+            onClick={handleBackClick}
+            className="px-4 py-2 text-gray-600 hover:text-gray-800"
           >
-            Previous
+            Back
           </button>
-          <p className="text-sm text-neutral-600">
-            Page {pageNumber} of {numPages}
-          </p>
+          <div className="flex gap-4">
+            <button
+              onClick={() => setPageNumber((page) => Math.max(page - 1, 1))}
+              disabled={pageNumber <= 1}
+              className="px-3 py-1 bg-pink-100 rounded-md text-pink-700 disabled:opacity-50"
+            >
+              Previous
+            </button>
+            <p className="text-sm text-neutral-600">
+              Page {pageNumber} of {numPages}
+            </p>
+            <button
+              onClick={() => setPageNumber((page) => Math.min(page + 1, numPages || 1))}
+              disabled={pageNumber >= (numPages || 1)}
+              className="px-3 py-1 bg-pink-100 rounded-md text-pink-700 disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
           <button
-            onClick={() => setPageNumber((page) => Math.min(page + 1, numPages || 1))}
-            disabled={pageNumber >= (numPages || 1)}
-            className="px-3 py-1 bg-pink-100 rounded-md text-pink-700 disabled:opacity-50"
+            onClick={handleConfirm}
+            className="px-4 py-2 bg-pink-500 text-white rounded-md hover:bg-pink-600 transition-colors flex items-center gap-2"
           >
-            Next
+            <Check size={16} /> Confirm
           </button>
         </div>
-        {/* Confirm Button */}
-        <button
-          onClick={handleConfirm}
-          disabled={!signature}
-          className="fixed bottom-6 right-6 w-12 h-12 rounded-full bg-pink-500 text-white flex items-center justify-center hover:bg-pink-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
-        >
-          <Check className="w-6 h-6" />
-        </button>
       </footer>
     </div>
   )

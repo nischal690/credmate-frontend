@@ -33,7 +33,7 @@ export default function RecentActivity() {
   ];
 
   return (
-    <section className="recent-activity-section mt-[-20px] px-5">
+    <section className="recent-activity-section mt-[-20px]">
       <h2 className="font-['Gilroy-Medium'] font-bold text-lg leading-[135%] tracking-[0.01em] text-[#555555] mb-5 flex items-center">
         Recent Activity
       </h2>
