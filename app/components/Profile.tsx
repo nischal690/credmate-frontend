@@ -12,6 +12,9 @@ import LocationOnIcon from '@mui/icons-material/LocationOn';
 import EmailIcon from '@mui/icons-material/Email';
 import PhoneIcon from '@mui/icons-material/Phone';
 import PersonIcon from '@mui/icons-material/Person';
+import BadgeIcon from '@mui/icons-material/Badge';
+import CreditCardIcon from '@mui/icons-material/CreditCard';
+import SecurityIcon from '@mui/icons-material/Security';
 
 interface ProfileData {
   name: string;
@@ -19,6 +22,8 @@ interface ProfileData {
   phone: string;
   address: string;
   bio: string;
+  aadharNo: string;
+  panNo: string;
 }
 
 export default function Profile() {
@@ -31,6 +36,8 @@ export default function Profile() {
     phone: '+91 9876543210',
     address: 'Mumbai, India',
     bio: 'Financial enthusiast with a passion for smart investments.',
+    aadharNo: '',
+    panNo: '',
   });
 
   const handleEdit = () => {
@@ -147,45 +154,118 @@ export default function Profile() {
             {/* Edit Form */}
             {isEditing && (
               <div className="space-y-6 mt-8 border-t border-pink-100 pt-6">
-                {Object.entries(profileData).map(([field, value]) => (
-                  <div key={field} className="space-y-2">
-                    <label className="text-sm font-medium text-gray-500 capitalize flex items-center space-x-2">
-                      {field === 'address' && <LocationOnIcon className="text-pink-400 w-4 h-4" />}
-                      {field === 'email' && <EmailIcon className="text-pink-400 w-4 h-4" />}
-                      {field === 'phone' && <PhoneIcon className="text-pink-400 w-4 h-4" />}
-                      {field === 'name' && <PersonIcon className="text-pink-400 w-4 h-4" />}
-                      <span>{field}</span>
-                    </label>
-                    <TextField
-                      fullWidth
-                      value={value}
-                      onChange={handleChange(field as keyof ProfileData)}
-                      variant="outlined"
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          backgroundColor: 'white',
-                          borderRadius: '12px',
-                          '&.Mui-focused fieldset': {
-                            borderColor: '#EC4899',
-                            borderWidth: '2px',
+                {/* Personal Information */}
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-700 mb-4">Personal Information</h3>
+                  {Object.entries(profileData)
+                    .filter(([field]) => !['aadharNo', 'panNo'].includes(field))
+                    .map(([field, value]) => (
+                    <div key={field} className="space-y-2 mb-4">
+                      <label className="text-sm font-medium text-gray-500 capitalize flex items-center space-x-2">
+                        {field === 'address' && <LocationOnIcon className="text-pink-400 w-4 h-4" />}
+                        {field === 'email' && <EmailIcon className="text-pink-400 w-4 h-4" />}
+                        {field === 'phone' && <PhoneIcon className="text-pink-400 w-4 h-4" />}
+                        {field === 'name' && <PersonIcon className="text-pink-400 w-4 h-4" />}
+                        <span>{field}</span>
+                      </label>
+                      <TextField
+                        fullWidth
+                        value={value}
+                        onChange={handleChange(field as keyof ProfileData)}
+                        variant="outlined"
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            backgroundColor: 'white',
+                            borderRadius: '12px',
+                            '&.Mui-focused fieldset': {
+                              borderColor: '#EC4899',
+                              borderWidth: '2px',
+                            },
+                            '&:hover fieldset': {
+                              borderColor: '#EC4899',
+                            },
+                            '& fieldset': {
+                              borderColor: '#f3f4f6',
+                            }
                           },
-                          '&:hover fieldset': {
-                            borderColor: '#EC4899',
-                          },
-                          '& fieldset': {
-                            borderColor: '#f3f4f6',
+                          '& .MuiInputBase-input': {
+                            padding: '12px 16px',
                           }
-                        },
-                        '& .MuiInputBase-input': {
-                          padding: '12px 16px',
-                        }
-                      }}
-                      multiline={field === 'bio'}
-                      rows={field === 'bio' ? 4 : 1}
-                      className="shadow-sm"
-                    />
+                        }}
+                        multiline={field === 'bio'}
+                        rows={field === 'bio' ? 4 : 1}
+                        className="shadow-sm"
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                {/* KYC Information */}
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-700 mb-4">KYC Information</h3>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-500 flex items-center space-x-2">
+                        <BadgeIcon className="text-pink-400 w-4 h-4" />
+                        <span>Aadhar Number</span>
+                        <span className="text-pink-500 text-xs">*Required</span>
+                      </label>
+                      <TextField
+                        fullWidth
+                        value={profileData.aadharNo}
+                        onChange={handleChange('aadharNo')}
+                        variant="outlined"
+                        placeholder="XXXX-XXXX-XXXX"
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            backgroundColor: 'white',
+                            borderRadius: '12px',
+                            '&.Mui-focused fieldset': {
+                              borderColor: '#EC4899',
+                              borderWidth: '2px',
+                            }
+                          }
+                        }}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-500 flex items-center space-x-2">
+                        <CreditCardIcon className="text-pink-400 w-4 h-4" />
+                        <span>PAN Number</span>
+                        <span className="text-pink-500 text-xs">*Required</span>
+                      </label>
+                      <TextField
+                        fullWidth
+                        value={profileData.panNo}
+                        onChange={handleChange('panNo')}
+                        variant="outlined"
+                        placeholder="XXXXXXXXXX"
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            backgroundColor: 'white',
+                            borderRadius: '12px',
+                            '&.Mui-focused fieldset': {
+                              borderColor: '#EC4899',
+                              borderWidth: '2px',
+                            }
+                          }
+                        }}
+                      />
+                    </div>
                   </div>
-                ))}
+                </div>
+
+                {/* Data Protection Notice */}
+                <div className="bg-pink-50 p-4 rounded-lg flex items-start space-x-3">
+                  <SecurityIcon className="text-pink-500 flex-shrink-0 mt-1" />
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-700">Data Protection Notice</h4>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Your personal and KYC information is encrypted and securely stored. We comply with all data protection regulations and never share your information without consent.
+                    </p>
+                  </div>
+                </div>
               </div>
             )}
           </div>
