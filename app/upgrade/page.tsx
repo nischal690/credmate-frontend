@@ -6,9 +6,12 @@ import StarIcon from '@mui/icons-material/Star';
 import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
 import DiamondIcon from '@mui/icons-material/Diamond';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import CloseIcon from '@mui/icons-material/Close';
+import DownloadIcon from '@mui/icons-material/Download';
+import { QRCodeSVG } from 'qrcode.react';
 import { useState, useRef, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import Script from 'next/script';
+import { getAuth } from 'firebase/auth';
 
 interface Plan {
   name: string;
@@ -26,6 +29,9 @@ export default function UpgradePage() {
   const [hoveredPlan, setHoveredPlan] = useState<string | null>(null);
   const [planType, setPlanType] = useState<'all' | 'individual' | 'business'>('all');
   const [showExpertModal, setShowExpertModal] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
+  const [paymentConfirmed, setPaymentConfirmed] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
@@ -109,139 +115,44 @@ export default function UpgradePage() {
     try {
       console.log('Starting payment process for plan:', plan.name);
       
-      // Load Razorpay
-      const res = await loadRazorpay();
-      if (!res) {
-        console.error('Razorpay SDK failed to load');
-        toast.error('Razorpay SDK failed to load');
-        return;
-      }
-      
-      console.log('Razorpay SDK loaded successfully');
-
       // Convert price string to number (remove ₹ and comma)
       const amount = parseInt(plan.price.replace('₹', '').replace(',', '')) * 100; // Convert to paise
       console.log('Calculated amount:', amount);
 
-      // Check if Razorpay key exists
-      const razorpayKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
-      if (!razorpayKey) {
-        console.error('Razorpay key is missing');
-        toast.error('Payment configuration error');
-        return;
+      // Get Firebase user
+      const auth = getAuth();
+      const user = auth.currentUser;
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+      
+      const idToken = await user.getIdToken();
+      
+      // Call your payment API endpoint here
+      const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/payment/create`;
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${idToken}`
+        },
+        body: JSON.stringify({
+          amount,
+          planName: plan.name
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create payment');
       }
 
-      // First, create an order on your backend
-      try {
-        const orderResponse = await fetch('/api/create-razorpay-order', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            amount: amount,
-            planName: plan.name
-          }),
-        });
-
-        if (!orderResponse.ok) {
-          throw new Error('Failed to create order');
-        }
-
-        const orderData = await orderResponse.json();
-        console.log('Order created:', orderData);
-
-        const options = {
-          key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-          amount: amount,
-          currency: 'INR',
-          name: 'Credmate',
-          description: `Payment for ${plan.name}`,
-          order_id: orderData.id,
-          handler: async function (response: any) {
-            console.log('Payment success response:', response);
-            
-            // Verify payment on backend
-            try {
-              const verifyResponse = await fetch('/api/verify-payment', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                  razorpay_payment_id: response.razorpay_payment_id,
-                  razorpay_order_id: response.razorpay_order_id,
-                  razorpay_signature: response.razorpay_signature
-                }),
-              });
-
-              if (!verifyResponse.ok) {
-                throw new Error('Payment verification failed');
-              }
-
-              const verifyData = await verifyResponse.json();
-              if (verifyData.verified) {
-                toast.success('Payment successful!');
-                // Add additional logic here like updating user subscription status
-              } else {
-                throw new Error('Payment verification failed');
-              }
-            } catch (verifyError) {
-              console.error('Verification error:', verifyError);
-              toast.error('Payment verification failed');
-            }
-          },
-          prefill: {
-            name: '', // You can add user's name here
-            email: '', // You can add user's email here
-            contact: '', // You can add user's phone number here
-          },
-          config: {
-            display: {
-              blocks: {
-                upi: {
-                  name: 'Pay using UPI',
-                  instruments: [
-                    {
-                      method: 'upi'
-                    }
-                  ]
-                },
-                other: {
-                  name: 'Other Payment Methods',
-                  instruments: [
-                    {
-                      method: 'card'
-                    },
-                    {
-                      method: 'netbanking'
-                    }
-                  ]
-                }
-              },
-              sequence: ['block.upi', 'block.other'],
-              preferences: {
-                show_default_blocks: true
-              }
-            }
-          },
-          theme: {
-            color: '#A2195E',
-          },
-          modal: {
-            ondismiss: function() {
-              console.log('Payment modal closed');
-              toast.error('Payment cancelled');
-            }
-          }
-        };
-
-        console.log('Initializing Razorpay with options:', { ...options, key: '***' });
-        const paymentObject = new (window as any).Razorpay(options);
-        paymentObject.open();
-      } catch (orderError) {
-        console.error('Order creation error:', orderError);
-        toast.error('Failed to create payment order');
+      const paymentData = await response.json();
+      
+      if (paymentData?.success) {
+        toast.success('Payment initiated successfully!');
+        // Add additional logic here like updating user subscription status
+      } else {
+        throw new Error('Payment initiation failed');
       }
     } catch (error) {
       console.error('Payment error:', error);
@@ -249,27 +160,29 @@ export default function UpgradePage() {
     }
   };
 
-  // Function to load Razorpay script
-  const loadRazorpay = () => {
-    return new Promise((resolve) => {
-      const script = document.createElement('script');
-      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-      script.onload = () => {
-        resolve(true);
+  const handleQRDownload = () => {
+    const svg = document.querySelector('.qr-code-container svg');
+    if (svg) {
+      const svgData = new XMLSerializer().serializeToString(svg);
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      img.onload = () => {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx?.drawImage(img, 0, 0);
+        const pngFile = canvas.toDataURL('image/png');
+        const downloadLink = document.createElement('a');
+        downloadLink.download = 'credmate-payment-qr.png';
+        downloadLink.href = pngFile;
+        downloadLink.click();
       };
-      script.onerror = () => {
-        resolve(false);
-      };
-      document.body.appendChild(script);
-    });
+      img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
+    }
   };
 
   return (
     <div className="min-h-screen bg-white overflow-y-auto">
-      <Script
-        src="https://checkout.razorpay.com/v1/checkout.js"
-        strategy="lazyOnload"
-      />
       <main className="flex-1">
         <motion.div 
           ref={containerRef}
@@ -420,18 +333,21 @@ export default function UpgradePage() {
                             </motion.li>
                           ))}
                         </ul>
-                        <motion.button
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          onClick={() => handlePayment(plan)}
-                          className={`w-full py-3 px-6 rounded-xl text-white font-semibold mt-6 ${
-                            plan.isPriority
-                              ? 'bg-gradient-to-r from-[#FFD700] to-[#FFA500] hover:from-[#FFE55C] hover:to-[#FFB52E]'
-                              : 'bg-gradient-to-r from-[#A2195E] to-[#BA1C6C] hover:from-[#B81D6B] hover:to-[#D32079]'
-                          }`}
-                        >
-                          Get started
-                        </motion.button>
+                        <div className="mt-8">
+                          <button
+                            onClick={() => {
+                              setSelectedPlan(plan);
+                              setShowPaymentModal(true);
+                            }}
+                            className={`w-full py-3 px-6 rounded-lg font-medium transition-colors duration-300 ${
+                              plan.isPriority
+                                ? 'bg-gradient-to-r from-[#A2195E] to-[#BA1C6C] text-white hover:from-[#8B1550] hover:to-[#A2195E]'
+                                : 'bg-white border-2 border-[#A2195E] text-[#A2195E] hover:bg-gray-50'
+                            }`}
+                          >
+                            Get Started
+                          </button>
+                        </div>
                       </div>
                     </motion.div>
                   </motion.div>
@@ -545,6 +461,102 @@ export default function UpgradePage() {
           </div>
         </motion.div>
       </main>
+
+      {/* Payment Modal */}
+      {showPaymentModal && selectedPlan && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 relative"
+          >
+            <button
+              onClick={() => {
+                setShowPaymentModal(false);
+                setPaymentConfirmed(false);
+                setSelectedPlan(null);
+              }}
+              className="absolute top-4 right-4 text-white hover:text-white/80 transition-colors z-10"
+            >
+              <CloseIcon />
+            </button>
+
+            <div className="text-center">
+              {!paymentConfirmed ? (
+                <>
+                  <div className="bg-gradient-to-br from-[#A2195E] to-[#BA1C6C] text-white p-6 -mx-8 -mt-8 rounded-t-2xl mb-6">
+                    <h3 className="text-2xl font-bold mb-2">Complete Payment</h3>
+                    <p className="opacity-90">Scan QR code to proceed</p>
+                  </div>
+
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-center gap-2 text-xl font-semibold text-gray-800">
+                      <span>Amount:</span>
+                      <span className="text-[#A2195E]">{selectedPlan.price}</span>
+                    </div>
+
+                    <div className="bg-white p-4 rounded-2xl shadow-lg inline-block">
+                      <div className="qr-code-container">
+                        <QRCodeSVG
+                          value={`upi://pay?pa=your-upi-id@bank&pn=Credmate&am=${selectedPlan.price.replace('₹', '')}&cu=INR`}
+                          size={200}
+                          level="H"
+                          imageSettings={{
+                            src: "/images/logo 1 (6).png",
+                            height: 40,
+                            width: 40,
+                            excavate: true,
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <button
+                        onClick={() => setPaymentConfirmed(true)}
+                        className="w-full py-3.5 px-6 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 transition-colors duration-300 shadow-lg shadow-green-600/20"
+                      >
+                        I've Completed the Payment
+                      </button>
+                      <button
+                        onClick={handleQRDownload}
+                        className="w-full py-3.5 px-6 bg-white border-2 border-[#A2195E] text-[#A2195E] rounded-xl font-medium hover:bg-gray-50 transition-colors duration-300"
+                      >
+                        <DownloadIcon className="mr-2" />
+                        Download QR Code
+                      </button>
+                      <p className="text-sm text-gray-500">
+                        Please ensure to complete the payment before confirming
+                      </p>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="text-center py-6">
+                  <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <AutoAwesomeIcon className="text-blue-500 text-5xl" />
+                  </div>
+                  <h4 className="text-2xl font-bold text-gray-800 mb-3">Payment in Review</h4>
+                  <p className="text-gray-600 mb-8">
+                    Your payment is currently under review. Please allow up to 24 hours for your account 
+                    to be upgraded. Our team is preparing to serve you better!
+                  </p>
+                  <button
+                    onClick={() => {
+                      setShowPaymentModal(false);
+                      setPaymentConfirmed(false);
+                      setSelectedPlan(null);
+                    }}
+                    className="w-full py-3.5 px-6 bg-gradient-to-r from-[#A2195E] to-[#BA1C6C] text-white rounded-xl font-medium hover:from-[#8B1550] hover:to-[#A2195E] transition-all duration-300 shadow-lg shadow-[#A2195E]/20"
+                  >
+                    Close
+                  </button>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }

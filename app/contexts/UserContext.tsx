@@ -47,23 +47,21 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       const idToken = await user.getIdToken(true);
       console.log('Got fresh ID token, first 10 chars:', idToken.substring(0, 10));
       
-      const response = await fetch('http://localhost:3000/user/complete-profile', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/user/complete-profile`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${idToken}`,
           'Content-Type': 'application/json'
         }
       });
-      
+
       if (!response.ok) {
-        console.error('API response not OK:', response.status, response.statusText);
-        const errorText = await response.text();
-        console.error('Error response:', errorText);
-        throw new Error('Failed to fetch profile data');
+        console.error('Profile fetch failed:', response.status, response.statusText);
+        throw new Error(`Failed to fetch profile: ${response.statusText}`);
       }
-      
+
       const data = await response.json();
-      console.log('Profile data received from API:', data);
+      console.log('Profile data received:', data);
       return data;
     } catch (error) {
       console.error('Error fetching user profile:', error);

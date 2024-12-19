@@ -149,12 +149,17 @@ export default function PhoneAuthPage() {
       
       // Call the complete-profile API
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/user/complete-profile`, {
+        const endpoint = `${process.env.NEXT_PUBLIC_API_BASE_URL}/user/complete-profile`;
+        const headers = {
+          'Authorization': `Bearer ${idToken}`,
+          'Content-Type': 'application/json'
+        };
+
+        alert(`Calling API Endpoint: ${endpoint}\n\nHeaders:\n${JSON.stringify(headers, null, 2)}`);
+
+        const response = await fetch(endpoint, {
           method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${idToken}`,
-            'Content-Type': 'application/json'
-          }
+          headers: headers
         });
 
         if (!response.ok) {
@@ -162,6 +167,7 @@ export default function PhoneAuthPage() {
         }
 
         const profileData = await response.json();
+        alert(`API Response:\n${JSON.stringify(profileData, null, 2)}`);
         console.log('Profile data:', profileData);
 
         // Check if name and businessType are empty
@@ -250,27 +256,33 @@ export default function PhoneAuthPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-br from-white via-pink-50 to-white">
-      <main className="flex-1 overflow-y-auto">
-        <div className="px-4 sm:px-6 pt-8 pb-24 min-h-full">
-          <div className="max-w-md mx-auto pt-8 sm:pt-12">
-            <div className="flex flex-col items-center mb-8">
+    <div className="flex min-h-screen bg-gradient-to-br from-white via-pink-50 to-white">
+      <main className="flex-1 flex items-center justify-center">
+        <div className="w-full px-4 sm:px-6 py-8">
+          <div className="max-w-md mx-auto">
+            <motion.div 
+              className="flex flex-col items-center mb-8"
+              initial={{ y: -20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.5 }}
+            >
               <motion.h2 
-                className="text-2xl font-bold text-center bg-gradient-to-r from-pink-600 to-pink-500 bg-clip-text text-transparent"
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.6, ease: "easeOut" }}
+                className="text-3xl font-bold text-center bg-gradient-to-r from-pink-600 to-pink-500 bg-clip-text text-transparent"
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
               >
                 Your Credit Journey Starts Here
               </motion.h2>
-            </div>
+            </motion.div>
 
             <motion.div 
-              className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-lg p-8 border border-pink-100/50"
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
+              className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-xl p-8 border border-pink-100/50 relative overflow-hidden"
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.3 }}
             >
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-500 to-pink-600 opacity-50" />
               <h1 className="text-2xl font-bold text-neutral-800 mb-3 bg-gradient-to-r from-pink-700 to-pink-500 bg-clip-text text-transparent">
                 {showOTP ? "Verify OTP" : "Welcome Back"}
               </h1>
@@ -282,7 +294,7 @@ export default function PhoneAuthPage() {
 
               {showOTP ? (
                 <>
-                  <div className="otp-container">
+                  <div className="otp-container flex justify-center gap-3 my-6">
                     {[0, 1, 2, 3, 4, 5].map((index) => (
                       <input
                         key={index}
@@ -292,7 +304,9 @@ export default function PhoneAuthPage() {
                         value={otpValue[index] || ''}
                         onChange={(e) => handleOtpChange(index, e.target.value)}
                         onKeyDown={(e) => handleKeyDown(index, e)}
-                        className={`otp-input ${error ? 'border-red-500' : ''}`}
+                        className={`w-12 h-12 text-center text-lg font-semibold rounded-xl border ${
+                          error ? 'border-red-500' : 'border-neutral-200'
+                        } bg-white/80 focus:border-pink-500 focus:ring focus:ring-pink-200/50 transition-all duration-300`}
                         disabled={loading}
                       />
                     ))}
@@ -332,7 +346,7 @@ export default function PhoneAuthPage() {
                       }
                     }}
                     disabled={loading || otpValue.length !== 6}
-                    className="w-full py-3.5 px-4 rounded-xl font-semibold text-base transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] bg-gradient-to-r from-pink-600 to-pink-500 text-white hover:from-pink-700 hover:to-pink-600 shadow-md hover:shadow-lg disabled:bg-neutral-100 disabled:text-neutral-400 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
+                    className="w-full py-4 px-4 rounded-xl font-semibold text-base transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] bg-gradient-to-r from-pink-600 to-pink-500 text-white hover:from-pink-700 hover:to-pink-600 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
                   >
                     {loading ? (
                       <div className="flex items-center justify-center gap-2">
@@ -349,7 +363,7 @@ export default function PhoneAuthPage() {
                   <label htmlFor="phone" className="block text-sm font-semibold text-neutral-700 mb-2">
                     Phone Number
                   </label>
-                  <div className="relative flex gap-2">
+                  <div className="relative flex gap-3 mb-6">
                     <div className="relative">
                       <button
                         type="button"
@@ -391,7 +405,7 @@ export default function PhoneAuthPage() {
                       value={phoneNumber}
                       onChange={(e) => setPhoneNumber(e.target.value)}
                       placeholder="Enter your phone number"
-                      className="flex-1 px-4 py-3 rounded-xl border border-neutral-200 bg-white/80 focus:border-pink-500 focus:ring focus:ring-pink-200/50 transition-all duration-300 text-neutral-800 placeholder-neutral-400 font-medium"
+                      className="flex-1 px-4 py-3.5 rounded-xl border border-neutral-200 bg-white/80 focus:border-pink-500 focus:ring focus:ring-pink-200/50 transition-all duration-300 text-neutral-800 placeholder-neutral-400 font-medium text-lg"
                       maxLength={10}
                     />
                   </div>
@@ -399,7 +413,7 @@ export default function PhoneAuthPage() {
                   <button
                     onClick={handleSendOTP}
                     disabled={!isValidPhoneNumber || loading}
-                    className="w-full py-3.5 px-4 mt-6 rounded-xl font-semibold text-base transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] bg-gradient-to-r from-pink-600 to-pink-500 text-white hover:from-pink-700 hover:to-pink-600 shadow-md hover:shadow-lg disabled:bg-neutral-100 disabled:text-neutral-400 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
+                    className="w-full py-4 px-4 rounded-xl font-semibold text-base transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] bg-gradient-to-r from-pink-600 to-pink-500 text-white hover:from-pink-700 hover:to-pink-600 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
                   >
                     {loading ? (
                       <div className="flex items-center justify-center gap-2">
@@ -429,20 +443,20 @@ export default function PhoneAuthPage() {
               className="mt-8 space-y-4"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
+              transition={{ delay: 0.6 }}
             >
-              <div className="flex items-center justify-center gap-2 text-sm text-neutral-600">
+              <div className="flex items-center justify-center gap-2.5 text-sm text-neutral-600">
                 <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
                 <span className="font-medium">Bank Grade Security</span>
               </div>
               
-              <p className="text-center text-sm text-neutral-600">
+              <p className="text-center text-sm text-neutral-500">
                 By continuing, you agree to our{' '}
-                <a href="#" className="text-pink-600 hover:text-pink-700 font-medium underline-offset-2 hover:underline">
+                <a href="#" className="text-pink-600 hover:text-pink-700 font-medium underline-offset-2 decoration-pink-200 hover:underline">
                   Terms of Service
                 </a>{' '}
                 and{' '}
-                <a href="#" className="text-pink-600 hover:text-pink-700 font-medium underline-offset-2 hover:underline">
+                <a href="#" className="text-pink-600 hover:text-pink-700 font-medium underline-offset-2 decoration-pink-200 hover:underline">
                   Privacy Policy
                 </a>
               </p>

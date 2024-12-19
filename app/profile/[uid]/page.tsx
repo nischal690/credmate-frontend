@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import {
   Container,
@@ -29,6 +29,7 @@ import BookmarkAddIcon from '@mui/icons-material/BookmarkAdd';
 import BookmarkAddedIcon from '@mui/icons-material/BookmarkAdded';
 import { Activity, CreditCard, Clock, Wallet, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import CreditScoreContainer from '../../components/CreditScoreContainer';
+import { getAuth } from 'firebase/auth';
 
 const StyledCard = styled(Card)(({ theme }) => ({
   background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(249, 237, 243, 0.9) 100%)',
@@ -325,12 +326,107 @@ const dummyTransactions: Transaction[] = [
 
 export default function UserProfile() {
   const params = useParams();
-  const [profileData, setProfileData] = useState<ProfileData>(dummyProfileData);
+  const [profileData, setProfileData] = useState<ProfileData>({
+    ...dummyProfileData,
+    creditDetails: [] // Ensure creditDetails is always an array
+  });
   const [expandedDetail, setExpandedDetail] = useState<string | null>(null);
   const [tabValue, setTabValue] = useState(0);
   const [transactions] = useState<Transaction[]>(dummyTransactions);
   const [isSaved, setIsSaved] = useState(false);
   const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+      const endpoint = `${API_BASE_URL}/search/id/${params.uid}`;
+      
+      console.log('🚀 Starting profile data fetch for UID:', params.uid);
+      console.log('🌐 Full API Endpoint:', endpoint);
+      
+      try {
+        const auth = getAuth();
+        const user = auth.currentUser;
+        
+        console.log('📱 Auth state:', user ? 'User authenticated' : 'No user found');
+        
+        if (!user) {
+          console.error('❌ Authentication error: No user found');
+          setError('User not authenticated');
+          return;
+        }
+
+        console.log('🔑 Getting Firebase ID token...');
+        const idToken = await user.getIdToken();
+        console.log('✅ ID token obtained successfully');
+
+        const headers = {
+          'Authorization': `Bearer ${idToken}`,
+          'Content-Type': 'application/json'
+        };
+        
+        console.log('📡 Making API request with headers:', {
+          ...headers,
+          'Authorization': 'Bearer [REDACTED]' // Don't log the actual token
+        });
+
+        const response = await fetch(endpoint, {
+          headers
+        });
+
+        console.log('📥 API Response:', {
+          status: response.status,
+          statusText: response.statusText,
+          headers: Object.fromEntries([...response.headers.entries()]),
+          url: response.url
+        });
+        
+        if (!response.ok) {
+          console.error('❌ API Error:', response.status, response.statusText);
+          throw new Error(`Failed to fetch profile data: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        // Ensure the data has the required structure
+        const sanitizedData: ProfileData = {
+          ...dummyProfileData, // Use dummy data as fallback
+          ...data,
+          creditDetails: data.creditDetails || [] // Ensure creditDetails is always an array
+        };
+        
+        console.log('✨ Full API Response Data:', {
+          endpoint,
+          requestHeaders: {
+            ...headers,
+            'Authorization': 'Bearer [REDACTED]'
+          },
+          responseStatus: response.status,
+          responseData: sanitizedData,
+          timestamp: new Date().toISOString()
+        });
+
+        setProfileData(sanitizedData);
+        console.log('💾 Profile data successfully updated in state');
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+        console.error('❌ Error in fetchProfileData:', {
+          endpoint,
+          error: errorMessage,
+          stack: err instanceof Error ? err.stack : undefined,
+          timestamp: new Date().toISOString()
+        });
+        setError(errorMessage);
+      } finally {
+        console.log('🏁 Profile data fetch process completed');
+        setLoading(false);
+      }
+    };
+
+    console.log('🔄 Effect triggered with UID:', params.uid);
+    fetchProfileData();
+  }, [params.uid]);
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
@@ -387,6 +483,33 @@ export default function UserProfile() {
     // For now, we'll just toggle the state
   };
 
+  if (loading) {
+    return (
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <StyledCard>
+          <CardContent>
+            <LinearProgress />
+          </CardContent>
+        </StyledCard>
+      </Container>
+    );
+  }
+
+  if (error) {
+    return (
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <StyledCard>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>Error</Typography>
+            <Typography variant="body1" color="text.secondary">
+              {error}
+            </Typography>
+          </CardContent>
+        </StyledCard>
+      </Container>
+    );
+  }
+
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <StyledCard>
@@ -394,15 +517,15 @@ export default function UserProfile() {
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <Avatar
-                src={dummyProfileData.profileImage}
+                src={profileData.profileImage}
                 sx={{ width: 100, height: 100 }}
               />
               <Box>
                 <Typography variant="h4" gutterBottom>
-                  {dummyProfileData.name}
+                  {profileData.name}
                 </Typography>
                 <Typography variant="body1" color="text.secondary">
-                  {dummyProfileData.occupation} at {dummyProfileData.company}
+                  {profileData.occupation} at {profileData.company}
                 </Typography>
               </Box>
             </Box>
@@ -501,7 +624,8 @@ export default function UserProfile() {
             {/* Credit Score Details */}
             <Typography variant="h6" gutterBottom>Credit Score Analysis</Typography>
             <Grid container spacing={2}>
-              {profileData.creditDetails.map((detail) => {
+              {Array.isArray(profileData.creditDetails) && profileData.creditDetails.map((detail) => {
+                if (!detail) return null;
                 const Icon = detail.icon;
                 const isExpanded = expandedDetail === detail.title;
 
@@ -517,11 +641,13 @@ export default function UserProfile() {
                         gap: 2,
                         mb: 2 
                       }}>
-                        <Box sx={{ 
-                          p: 1.5, 
-                          borderRadius: '12px', 
-                          background: `${detail.color}15`
-                        }}>
+                        <Box 
+                          sx={{ 
+                            p: 1.5, 
+                            borderRadius: '12px', 
+                            background: `${detail.color}15`
+                          }}
+                        >
                           <Icon color={detail.color} size={24} />
                         </Box>
                         <Typography variant="h6" sx={{ fontWeight: 600 }}>

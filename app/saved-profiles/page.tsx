@@ -21,7 +21,8 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions
+  DialogActions,
+  Fade
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
@@ -31,7 +32,7 @@ import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
 import PhoneIcon from '@mui/icons-material/Phone';
 import BusinessIcon from '@mui/icons-material/Business';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { getSavedProfilesFromStorage } from '../../utils/api';
 import { useUser } from '../contexts/UserContext';
 import Image from 'next/image';
@@ -192,315 +193,370 @@ export default function SavedProfiles() {
   };
 
   return (
-    <Box 
+    <Container 
+      disableGutters 
       sx={{ 
-        minHeight: '100vh',
+        px: 0,
+        pb: 2,
+        maxWidth: '100% !important',
         background: 'linear-gradient(135deg, #f8f9fa 0%, #fff5f8 100%)',
-        py: { xs: 2, sm: 4 },
-        px: { xs: 2, sm: 3 }
+        minHeight: '100vh'
       }}
     >
-      <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Box sx={{ mb: 3, display: 'flex', alignItems: 'center' }}>
-          <button 
+      <Box 
+        sx={{ 
+          background: 'linear-gradient(135deg, #A2195E 0%, #d4447c 100%)',
+          color: 'white',
+          px: 2,
+          pt: 4,
+          pb: 3,
+          mb: 3,
+          borderBottomLeftRadius: '24px',
+          borderBottomRightRadius: '24px',
+          boxShadow: '0 4px 20px rgba(162, 25, 94, 0.15)',
+          position: 'relative'
+        }}
+      >
+        <Box sx={{ 
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1,
+          mb: 2
+        }}>
+          <IconButton 
             onClick={() => router.back()}
-            className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm hover:shadow-md transition-all duration-300 active:scale-95"
-          >
-            <Image
-              src="/images/searchprofileicons/arrowbendleft.svg"
-              alt="Back"
-              width={20} 
-              height={20}
-              className="opacity-70"
-            />
-          </button>
-          <Typography variant="h4" component="h1" sx={{ fontWeight: 600, ml: 2 }}>
-            Saved Profiles
-          </Typography>
-        </Box>
-        <Box 
-          sx={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'center',
-            mb: { xs: 3, sm: 4 },
-            flexDirection: { xs: 'column', sm: 'row' },
-            gap: { xs: 2, sm: 0 }
-          }}
-        >
-          <Box>
-            <Typography 
-              variant="h4" 
-              component="h1" 
-              sx={{ 
-                fontWeight: 700,
-                fontSize: { xs: '1.75rem', sm: '2.5rem' },
-                background: 'linear-gradient(135deg, #A2195E 0%, #d4447c 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                mb: 1
-              }}
-            >
-              Saved Profiles
-            </Typography>
-            <Typography 
-              variant="body1" 
-              color="text.secondary"
-              sx={{ 
-                fontSize: { xs: '0.875rem', sm: '1rem' },
-                maxWidth: '600px'
-              }}
-            >
-              Quick access to your saved customer profiles
-            </Typography>
-          </Box>
-          <StyledButton
-            onClick={() => router.push('/search-profile')}
-            startIcon={<AddIcon />}
             sx={{ 
-              minWidth: { xs: '100%', sm: 'auto' }
+              color: 'white',
+              bgcolor: 'rgba(255, 255, 255, 0.1)',
+              '&:hover': {
+                bgcolor: 'rgba(255, 255, 255, 0.2)'
+              }
             }}
           >
-            Add New Profile
-          </StyledButton>
-        </Box>
-
-        {loading ? (
-          <Box 
-            display="flex" 
-            justifyContent="center" 
-            alignItems="center" 
-            minHeight="300px"
+            <ArrowBackIcon />
+          </IconButton>
+          <Typography 
+            variant="h5" 
+            sx={{ 
+              fontWeight: 600,
+              flex: 1
+            }}
           >
+            Saved Profiles
+          </Typography>
+          <IconButton
+            onClick={() => router.push('/search-profile')}
+            sx={{
+              bgcolor: 'white',
+              color: '#A2195E',
+              '&:hover': {
+                bgcolor: 'rgba(255, 255, 255, 0.9)'
+              }
+            }}
+          >
+            <AddIcon />
+          </IconButton>
+        </Box>
+        <Typography variant="body2" sx={{ opacity: 0.9 }}>
+          {profiles.length} {profiles.length === 1 ? 'Profile' : 'Profiles'} saved
+        </Typography>
+      </Box>
+
+      <Box sx={{ px: 2 }}>
+        {loading ? (
+          <Box sx={{ 
+            display: 'flex', 
+            justifyContent: 'center', 
+            alignItems: 'center',
+            minHeight: '60vh'
+          }}>
             <CircularProgress sx={{ color: '#A2195E' }} />
           </Box>
         ) : profiles.length === 0 ? (
           <Box
+            component={motion.div}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
             sx={{
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              minHeight: '400px',
-              background: 'rgba(255, 255, 255, 0.8)',
-              backdropFilter: 'blur(10px)',
-              borderRadius: '24px',
-              p: { xs: 3, sm: 6 },
+              py: 8,
+              px: 3,
+              background: 'linear-gradient(135deg, rgba(162, 25, 94, 0.03) 0%, rgba(212, 68, 124, 0.03) 100%)',
+              borderRadius: 4,
               textAlign: 'center'
             }}
           >
-            <NoProfilesIcon sx={{ fontSize: 80, color: '#A2195E', opacity: 0.8, mb: 3 }} />
+            <NoProfilesIcon sx={{ 
+              fontSize: 64, 
+              color: '#A2195E', 
+              mb: 2, 
+              opacity: 0.5 
+            }} />
             <Typography 
-              variant="h5" 
-              gutterBottom
+              variant="h6" 
               sx={{ 
-                fontWeight: 600,
                 color: '#1A1A1A',
-                mb: 2
+                mb: 1,
+                fontWeight: 600
               }}
             >
-              No Saved Profiles Yet
+              No saved profiles yet
             </Typography>
             <Typography 
-              variant="body1" 
-              color="text.secondary" 
+              variant="body2" 
               sx={{ 
-                maxWidth: '400px',
-                mb: 4,
-                lineHeight: 1.6
-              }}
-            >
-              Start by searching and saving profiles of your customers for quick access.
-            </Typography>
-            <StyledButton
-              onClick={() => router.push('/search-profile')}
-              startIcon={<SearchIcon />}
-            >
-              Search Profiles
-            </StyledButton>
-          </Box>
-        ) : (
-          <Grid container spacing={{ xs: 2, sm: 3 }}>
-            {profiles.map((profile) => (
-              <Grid item xs={12} sm={6} md={4} key={profile.id}>
-                <StyledCard>
-                  <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
-                    <Box 
-                      sx={{ 
-                        display: 'flex',
-                        alignItems: 'flex-start',
-                        gap: 2,
-                        position: 'relative'
-                      }}
-                    >
-                      <Avatar
-                        src={profile.profileImageUrl || undefined}
-                        alt={profile.name}
-                        sx={{ 
-                          width: { xs: 48, sm: 56 }, 
-                          height: { xs: 48, sm: 56 },
-                          bgcolor: '#A2195E',
-                          fontSize: { xs: '1.25rem', sm: '1.5rem' },
-                          border: '2px solid #fff',
-                          boxShadow: '0 4px 12px rgba(162, 25, 94, 0.15)'
-                        }}
-                      >
-                        {profile.name.charAt(0)}
-                      </Avatar>
-                      <Box sx={{ flex: 1 }}>
-                        <Typography 
-                          variant="h6" 
-                          component="div"
-                          sx={{ 
-                            fontWeight: 600,
-                            fontSize: { xs: '1rem', sm: '1.25rem' },
-                            mb: 0.5,
-                            color: '#1A1A1A'
-                          }}
-                        >
-                          {profile.name}
-                        </Typography>
-                        <Typography 
-                          variant="body2" 
-                          sx={{ 
-                            color: 'text.secondary',
-                            fontSize: { xs: '0.813rem', sm: '0.875rem' },
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 1,
-                            mb: 0.5
-                          }}
-                        >
-                          <PhoneIcon sx={{ fontSize: '1rem', opacity: 0.8 }} />
-                          {profile.phoneNumber}
-                        </Typography>
-                        <Typography 
-                          variant="body2" 
-                          sx={{ 
-                            color: 'text.secondary',
-                            fontSize: { xs: '0.813rem', sm: '0.875rem' },
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 1
-                          }}
-                        >
-                          <BusinessIcon sx={{ fontSize: '1rem', opacity: 0.8 }} />
-                          {profile.businessType}
-                        </Typography>
-                      </Box>
-                      <IconButton
-                        onClick={() => setDeleteDialog({ open: true, profileId: profile.id })}
-                        sx={{
-                          color: '#666',
-                          '&:hover': {
-                            color: '#ef4444',
-                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                          },
-                          position: 'absolute',
-                          top: 0,
-                          right: 0
-                        }}
-                      >
-                        <DeleteOutlineIcon sx={{ fontSize: '1.25rem' }} />
-                      </IconButton>
-                    </Box>
-                  </CardContent>
-                </StyledCard>
-              </Grid>
-            ))}
-          </Grid>
-        )}
-
-        {/* Delete Confirmation Dialog - Styled version */}
-        <Dialog
-          open={deleteDialog.open}
-          onClose={handleDeleteCancel}
-          PaperProps={{
-            sx: {
-              borderRadius: '20px',
-              padding: '16px',
-              maxWidth: '400px',
-              width: '90%'
-            }
-          }}
-        >
-          <DialogTitle sx={{ 
-            textAlign: 'center',
-            fontWeight: 600,
-            color: '#1A1A1A',
-            pb: 1
-          }}>
-            Delete Profile
-          </DialogTitle>
-          <DialogContent>
-            <Typography 
-              variant="body1" 
-              align="center"
-              color="text.secondary"
-              sx={{ pt: 1 }}
-            >
-              Are you sure you want to delete this profile? This action cannot be undone.
-            </Typography>
-          </DialogContent>
-          <DialogActions sx={{ 
-            justifyContent: 'center',
-            gap: 2,
-            pb: 2,
-            px: 3
-          }}>
-            <Button
-              onClick={handleDeleteCancel}
-              sx={{
                 color: '#666',
-                flex: 1,
-                borderRadius: '10px',
-                textTransform: 'none',
-                fontSize: '0.938rem'
+                mb: 3,
+                maxWidth: '280px'
               }}
             >
-              Cancel
-            </Button>
+              Start adding profiles to keep track of your customers
+            </Typography>
             <Button
-              onClick={handleDeleteConfirm}
+              fullWidth
+              variant="contained"
+              onClick={() => router.push('/search-profile')}
               sx={{
-                bgcolor: '#ef4444',
+                background: 'linear-gradient(135deg, #A2195E 0%, #d4447c 100%)',
                 color: 'white',
-                flex: 1,
-                borderRadius: '10px',
+                py: 1.5,
+                px: 4,
+                borderRadius: 3,
                 textTransform: 'none',
-                fontSize: '0.938rem',
+                fontSize: '1rem',
+                boxShadow: '0 8px 24px rgba(162, 25, 94, 0.25)',
                 '&:hover': {
-                  bgcolor: '#dc2626'
+                  background: 'linear-gradient(135deg, #8B1550 0%, #c13d6f 100%)',
+                  boxShadow: '0 8px 32px rgba(162, 25, 94, 0.35)',
                 }
               }}
             >
-              Delete
+              Add Your First Profile
             </Button>
-          </DialogActions>
-        </Dialog>
+          </Box>
+        ) : (
+          <Box 
+            component={motion.div}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+          >
+            {profiles.map((profile, index) => (
+              <Card
+                component={motion.div}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: index * 0.1 }}
+                key={profile.id}
+                sx={{
+                  mb: 2,
+                  borderRadius: 3,
+                  background: 'rgba(255, 255, 255, 0.9)',
+                  backdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(162, 25, 94, 0.1)',
+                  boxShadow: '0 4px 16px rgba(162, 25, 94, 0.06)',
+                  overflow: 'hidden',
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 8px 24px rgba(162, 25, 94, 0.1)',
+                  },
+                  '&:active': {
+                    transform: 'translateY(0)',
+                  }
+                }}
+              >
+                <CardContent sx={{ p: '16px !important' }}>
+                  <Box 
+                    sx={{ 
+                      display: 'flex',
+                      alignItems: 'center',
+                      mb: 2
+                    }}
+                  >
+                    <Avatar
+                      src={profile.profileImageUrl || undefined}
+                      sx={{ 
+                        width: 52,
+                        height: 52,
+                        bgcolor: '#A2195E',
+                        mr: 2,
+                        border: '2px solid white',
+                        boxShadow: '0 4px 12px rgba(162, 25, 94, 0.15)'
+                      }}
+                    >
+                      {profile.name.charAt(0)}
+                    </Avatar>
+                    <Box sx={{ flex: 1 }}>
+                      <Typography 
+                        variant="subtitle1" 
+                        sx={{ 
+                          fontWeight: 600,
+                          color: '#1A1A1A',
+                          mb: 0.5,
+                          fontSize: '1.1rem'
+                        }}
+                      >
+                        {profile.name}
+                      </Typography>
+                      <Typography 
+                        variant="body2" 
+                        sx={{ 
+                          color: '#666',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 0.5
+                        }}
+                      >
+                        <PhoneIcon sx={{ fontSize: 16 }} />
+                        {profile.phoneNumber}
+                      </Typography>
+                    </Box>
+                    <IconButton
+                      onClick={(event) => handleDeleteClick(profile.id, event)}
+                      sx={{ 
+                        color: '#d32f2f',
+                        '&:hover': {
+                          bgcolor: 'rgba(211, 47, 47, 0.04)'
+                        }
+                      }}
+                    >
+                      <DeleteOutlineIcon />
+                    </IconButton>
+                  </Box>
+                  <Button
+                    fullWidth
+                    onClick={() => handleViewProfile(profile)}
+                    sx={{
+                      background: 'linear-gradient(135deg, rgba(162, 25, 94, 0.04) 0%, rgba(212, 68, 124, 0.04) 100%)',
+                      color: '#A2195E',
+                      py: 1.5,
+                      borderRadius: 2,
+                      textTransform: 'none',
+                      fontSize: '0.95rem',
+                      fontWeight: 500,
+                      border: '1px solid rgba(162, 25, 94, 0.12)',
+                      '&:hover': {
+                        background: 'linear-gradient(135deg, rgba(162, 25, 94, 0.08) 0%, rgba(212, 68, 124, 0.08) 100%)',
+                      }
+                    }}
+                  >
+                    View Details
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </Box>
+        )}
+      </Box>
 
-        {/* Snackbar with custom styling */}
-        <Snackbar 
-          open={snackbar.open} 
-          autoHideDuration={6000} 
-          onClose={handleCloseSnackbar}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-        >
-          <Alert 
-            onClose={handleCloseSnackbar} 
-            severity={snackbar.severity}
-            sx={{ 
+      <Dialog
+        open={deleteDialog.open}
+        onClose={handleDeleteCancel}
+        PaperProps={{
+          sx: {
+            borderRadius: '24px',
+            padding: '24px',
+            maxWidth: '320px',
+            width: '90%',
+            background: 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(10px)',
+          }
+        }}
+        TransitionComponent={Fade}
+      >
+        <DialogTitle sx={{ 
+          textAlign: 'center',
+          fontWeight: 600,
+          color: '#1A1A1A',
+          pb: 1,
+          pt: 0
+        }}>
+          Delete Profile
+        </DialogTitle>
+        <DialogContent>
+          <Typography 
+            variant="body1" 
+            align="center"
+            color="text.secondary"
+            sx={{ pt: 1 }}
+          >
+            Are you sure you want to delete this profile? This action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ 
+          justifyContent: 'center',
+          gap: 2,
+          pb: 1,
+          px: 2
+        }}>
+          <Button
+            onClick={handleDeleteCancel}
+            sx={{
+              color: '#666',
+              flex: 1,
               borderRadius: '12px',
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)',
-              '& .MuiAlert-icon': {
-                fontSize: '1.25rem'
+              textTransform: 'none',
+              fontSize: '0.95rem',
+              py: 1.25,
+              border: '1px solid rgba(102, 102, 102, 0.1)',
+              '&:hover': {
+                bgcolor: 'rgba(0, 0, 0, 0.03)'
               }
             }}
           >
-            {snackbar.message}
-          </Alert>
-        </Snackbar>
-      </Container>
-    </Box>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleDeleteConfirm}
+            sx={{
+              background: 'linear-gradient(135deg, #ef4444 0%, #ff6b6b 100%)',
+              color: 'white',
+              flex: 1,
+              borderRadius: '12px',
+              textTransform: 'none',
+              fontSize: '0.95rem',
+              py: 1.25,
+              '&:hover': {
+                background: 'linear-gradient(135deg, #dc2626 0%, #ef4444 100%)',
+              }
+            }}
+          >
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Snackbar 
+        open={snackbar.open} 
+        autoHideDuration={4000} 
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        sx={{
+          mb: 2
+        }}
+      >
+        <Alert 
+          onClose={handleCloseSnackbar} 
+          severity={snackbar.severity}
+          sx={{ 
+            borderRadius: '16px',
+            background: 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(10px)',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
+            '& .MuiAlert-icon': {
+              fontSize: '1.25rem'
+            },
+            border: '1px solid rgba(0, 0, 0, 0.05)'
+          }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+    </Container>
   );
 }

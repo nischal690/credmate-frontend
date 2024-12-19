@@ -5,6 +5,8 @@ import Image from 'next/image';
 import { format } from 'date-fns';
 import HistoryAppBar from '../components/HistoryAppBar';
 import NavBar from '../components/NavBar';
+import { Menu, Transition } from '@headlessui/react';
+import { Fragment } from 'react';
 
 interface HistoryItem {
   id: number;
@@ -119,96 +121,154 @@ const HistoryPage = () => {
     }).format(amount);
   };
 
-  return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-br from-pink-50 via-white to-pink-100">
-      <HistoryAppBar />
-      <main className="flex-1 overflow-y-auto">
-        <div className="px-2 xs:px-3 sm:px-6 pt-12 xs:pt-14 pb-20 sm:pt-16 sm:pb-24 max-w-2xl mx-auto">
-          {/* Title Section */}
-          <div className="mb-4 xs:mb-6 sm:mb-8 animate-fade-in">
-            <h1 className="text-lg xs:text-xl sm:text-3xl font-bold mb-0.5 xs:mb-1 sm:mb-2 bg-gradient-to-r from-pink-700 to-pink-500 bg-clip-text text-transparent">
-              Transaction History
-            </h1>
-            <p className="text-sm xs:text-base text-neutral-600">
-              Track your credit journey
-            </p>
+  const FilterDropdown = ({ 
+    label, 
+    options, 
+    value, 
+    onChange 
+  }: { 
+    label: string;
+    options: { value: string; label: string }[];
+    value: string;
+    onChange: (value: any) => void;
+  }) => (
+    <Menu as="div" className="relative">
+      <Menu.Button className="w-full flex items-center justify-between h-11 px-4 text-left bg-white/80 dark:bg-neutral-800/80 backdrop-blur-xl rounded-xl border border-rose-100/20 hover:border-[#a2195e]/30 focus:ring-2 focus:ring-[#a2195e]/20 transition-all outline-none text-sm group">
+        <span className="flex items-center space-x-2">
+          <span className="text-neutral-400">{label}</span>
+          <span className="text-neutral-900 dark:text-white capitalize font-medium">
+            {options.find(opt => opt.value === value)?.label}
+          </span>
+        </span>
+        <div className="w-5 h-5 rounded-full bg-neutral-100 dark:bg-neutral-700 flex items-center justify-center transition-transform group-hover:bg-[#a2195e]/10">
+          <Image
+            src="/images/arrowbendright.svg"
+            alt="arrow"
+            width={12}
+            height={12}
+            className="opacity-40 rotate-90 transition-transform group-hover:opacity-60"
+          />
+        </div>
+      </Menu.Button>
+      
+      <Transition
+        as={Fragment}
+        enter="transition ease-out duration-200"
+        enterFrom="transform opacity-0 scale-95 translate-y-2"
+        enterTo="transform opacity-100 scale-100 translate-y-0"
+        leave="transition ease-in duration-150"
+        leaveFrom="transform opacity-100 scale-100 translate-y-0"
+        leaveTo="transform opacity-0 scale-95 translate-y-2"
+      >
+        <Menu.Items className="absolute z-10 mt-2 w-full bg-white dark:bg-neutral-800 rounded-xl shadow-lg shadow-black/[0.08] border border-rose-100/20 focus:outline-none overflow-hidden">
+          <div className="p-1.5">
+            {options.map((option) => (
+              <Menu.Item key={option.value}>
+                {({ active }) => (
+                  <button
+                    onClick={() => onChange(option.value)}
+                    className={`
+                      ${active ? 'bg-gradient-to-r from-[#a2195e] to-[#ff2b8f] text-white' : 
+                        value === option.value ? 'bg-rose-50 dark:bg-neutral-700 text-neutral-900 dark:text-white' : 
+                        'text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-700/50'
+                      } 
+                      group flex w-full items-center rounded-lg px-3 py-2.5 text-sm capitalize transition-colors
+                    `}
+                  >
+                    <span className="flex-1">{option.label}</span>
+                    {value === option.value && (
+                      <span className="ml-2">
+                        <Image
+                          src="/images/check.svg"
+                          alt="Selected"
+                          width={14}
+                          height={14}
+                          className={`${active ? 'opacity-100' : 'opacity-60'}`}
+                        />
+                      </span>
+                    )}
+                  </button>
+                )}
+              </Menu.Item>
+            ))}
           </div>
+        </Menu.Items>
+      </Transition>
+    </Menu>
+  );
 
-          {/* Search and Filter Section */}
-          <div className="mb-4 xs:mb-6 sm:mb-8 space-y-3 xs:space-y-4 sm:space-y-6 animate-slide-up">
-            <div className="relative">
-              <div className="absolute inset-y-0 left-2 xs:left-3 sm:left-4 flex items-center pointer-events-none">
-                <Image
-                  src="/images/searchprofileicons/search.svg"
-                  alt="Search"
-                  width={16}
-                  height={16}
-                  className="text-gray-400 w-3.5 xs:w-4 sm:w-[18px]"
-                />
-              </div>
-              <input
-                type="text"
-                placeholder="Search by lender or amount..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-7 xs:pl-9 sm:pl-12 pr-2 xs:pr-3 sm:pr-4 py-2 xs:py-2.5 sm:py-4 bg-white/80 backdrop-blur-lg rounded-lg sm:rounded-2xl border border-neutral-200 focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 transition-all outline-none text-xs xs:text-sm sm:text-base text-neutral-700 placeholder-neutral-400 shadow-sm hover:shadow-md"
+  const filterSection = (
+    <div className="space-y-3 mb-6 min-w-[280px]">
+      <FilterDropdown
+        label="Type"
+        value={creditType}
+        onChange={setCreditType}
+        options={[
+          { value: 'all', label: 'All Types' },
+          { value: 'one-time', label: 'One Time' },
+          { value: 'emi', label: 'EMI' },
+        ]}
+      />
+      
+      <FilterDropdown
+        label="Status"
+        value={statusFilter}
+        onChange={setStatusFilter}
+        options={[
+          { value: 'all', label: 'All Status' },
+          { value: 'requested', label: 'Requested' },
+          { value: 'approved', label: 'Approved' },
+          { value: 'rejected', label: 'Rejected' },
+          { value: 'completed', label: 'Completed' },
+        ]}
+      />
+    </div>
+  );
+
+  return (
+    <div className="flex flex-col min-h-screen bg-gradient-to-b from-rose-50 to-white dark:from-neutral-900 dark:to-neutral-900">
+      <HistoryAppBar />
+      <main className="flex-1 overflow-y-auto overscroll-y-contain">
+        <div className="container min-h-full w-full px-4 pt-20 pb-24 mx-auto max-w-[480px] min-w-[320px]">
+          {/* Search Section */}
+          <div className="relative mb-6 min-w-[280px]">
+            <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+              <Image
+                src="/images/searchprofileicons/search.svg"
+                alt="Search"
+                width={16}
+                height={16}
+                className="w-4 opacity-40"
               />
             </div>
-
-            {/* Filter Pills */}
-            <div className="space-y-2 sm:space-y-4">
-              {/* Credit Type Filter */}
-              <div className="flex gap-1 xs:gap-1.5 sm:gap-2 overflow-x-auto pb-1 -mx-2 xs:-mx-3 px-2 xs:px-3 sm:mx-0 sm:px-0 scrollbar-hide">
-                {(['all', 'one-time', 'emi'] as const).map((type) => (
-                  <button
-                    key={type}
-                    onClick={() => setCreditType(type)}
-                    className={`px-2 xs:px-3 sm:px-6 py-1 xs:py-1.5 sm:py-3 rounded-md xs:rounded-lg sm:rounded-xl text-[10px] xs:text-xs sm:text-sm font-medium transition-all whitespace-nowrap flex-shrink-0 ${
-                      creditType === type
-                        ? 'bg-pink-500 text-white shadow-lg shadow-pink-500/25 scale-105'
-                        : 'bg-white/80 backdrop-blur-sm text-neutral-600 hover:bg-pink-50 shadow-sm hover:shadow-md'
-                    }`}
-                  >
-                    {type === 'all' ? 'All Types' : type === 'emi' ? 'EMI' : 'One Time'}
-                  </button>
-                ))}
-              </div>
-
-              {/* Status Filter */}
-              <div className="flex gap-1 xs:gap-1.5 sm:gap-2 overflow-x-auto pb-1 -mx-2 xs:-mx-3 px-2 xs:px-3 sm:mx-0 sm:px-0 scrollbar-hide">
-                {(['all', 'requested', 'approved', 'rejected', 'completed'] as const).map((status) => (
-                  <button
-                    key={status}
-                    onClick={() => setStatusFilter(status)}
-                    className={`px-2 xs:px-3 sm:px-6 py-1 xs:py-1.5 sm:py-3 rounded-md xs:rounded-lg sm:rounded-xl text-[10px] xs:text-xs sm:text-sm font-medium capitalize transition-all whitespace-nowrap flex-shrink-0 ${
-                      statusFilter === status
-                        ? 'bg-pink-500 text-white shadow-lg shadow-pink-500/25 scale-105'
-                        : 'bg-white/80 backdrop-blur-sm text-neutral-600 hover:bg-pink-50 shadow-sm hover:shadow-md'
-                    }`}
-                  >
-                    {status === 'all' ? 'All Status' : status}
-                  </button>
-                ))}
-              </div>
-            </div>
+            <input
+              type="text"
+              placeholder="Search transactions..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 h-11 bg-white/80 dark:bg-neutral-800/80 backdrop-blur-xl rounded-xl border border-rose-100/20 focus:ring-2 focus:ring-[#a2195e]/20 transition-all outline-none text-sm placeholder:text-neutral-400"
+            />
           </div>
 
+          {/* Replace the Filter Pills section with the new filterSection */}
+          {filterSection}
+
           {/* History List */}
-          <div className="space-y-2 xs:space-y-3 sm:space-y-4">
+          <div className="space-y-3 min-w-[280px]">
             {filteredHistory.length === 0 ? (
-              <div className="text-center py-8 xs:py-12 sm:py-16 bg-white/80 backdrop-blur-lg rounded-xl sm:rounded-3xl border border-neutral-100 shadow-sm animate-fade-in">
-                <div className="w-12 h-12 xs:w-16 xs:h-16 sm:w-20 sm:h-20 mx-auto mb-3 xs:mb-4 sm:mb-6 rounded-full bg-pink-50 flex items-center justify-center">
+              <div className="flex flex-col items-center justify-center py-16">
+                <div className="w-16 h-16 mb-4 rounded-2xl bg-gradient-to-br from-[#a2195e]/10 to-[#ff2b8f]/10 flex items-center justify-center">
                   <Image
                     src="/images/searchprofileicons/search.svg"
                     alt="No results"
-                    width={16}
-                    height={16}
-                    className="opacity-50 w-4 xs:w-6 sm:w-8"
+                    width={24}
+                    height={24}
+                    className="opacity-30"
                   />
                 </div>
-                <h3 className="text-base xs:text-lg sm:text-xl font-semibold text-neutral-800 mb-1 xs:mb-2 sm:mb-3">No transactions found</h3>
-                <p className="text-xs xs:text-sm sm:text-base text-neutral-600 max-w-[200px] xs:max-w-[250px] sm:max-w-sm mx-auto">
-                  Try adjusting your search terms or filters
+                <h3 className="text-base font-semibold text-neutral-900 dark:text-white mb-1">No results found</h3>
+                <p className="text-xs text-neutral-500 dark:text-neutral-400 text-center max-w-[250px]">
+                  Try adjusting your filters
                 </p>
               </div>
             ) : (
@@ -218,80 +278,66 @@ const HistoryPage = () => {
                   <div
                     key={item.id}
                     onClick={() => setSelectedItem(selectedItem === item.id ? null : item.id)}
-                    className={`bg-white/80 backdrop-blur-lg rounded-lg sm:rounded-3xl p-2.5 xs:p-3 sm:p-6 shadow-sm hover:shadow-md border border-neutral-100 hover:border-pink-100 transition-all cursor-pointer animate-slide-up ${
-                      selectedItem === item.id ? 'ring-2 ring-pink-500/20' : ''
+                    className={`relative bg-white/80 dark:bg-neutral-800/80 backdrop-blur-xl rounded-2xl p-4 transition-all active:scale-[0.98] border border-rose-100/20 ${
+                      selectedItem === item.id ? 'ring-2 ring-[#a2195e]' : ''
                     }`}
                   >
-                    <div className="flex items-start justify-between gap-2 sm:gap-4">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1 xs:gap-1.5 sm:gap-3 mb-1 xs:mb-1.5 sm:mb-2 flex-wrap">
-                          <h3 className="font-semibold text-xs xs:text-sm sm:text-lg text-neutral-800 truncate">{item.lender}</h3>
-                          <div className={`px-1.5 xs:px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] xs:text-xs sm:text-sm font-medium ${statusStyle.bg} ${statusStyle.text} flex items-center gap-1 sm:gap-2`}>
-                            <Image
-                              src={statusStyle.icon}
-                              alt={item.status}
-                              width={8}
-                              height={8}
-                              className="w-2 h-2 xs:w-3 xs:h-3 sm:w-4 sm:h-4"
-                            />
-                            <span className="capitalize">{item.status}</span>
-                          </div>
-                        </div>
-                        <p className="text-[10px] xs:text-xs sm:text-sm text-neutral-500 mb-2 xs:mb-3">{format(new Date(item.date), 'MMM d, yyyy')}</p>
-                        <div className="flex flex-wrap gap-2 xs:gap-2.5 sm:gap-4">
-                          <div>
-                            <p className="text-[10px] xs:text-xs text-neutral-500 mb-0.5">Amount</p>
-                            <p className="font-semibold text-[10px] xs:text-xs sm:text-base text-neutral-800">{formatAmount(item.amount)}</p>
-                          </div>
-                          {item.type === 'emi' && (
-                            <>
-                              <div className="hidden sm:block w-px h-8 bg-neutral-200" />
-                              <div>
-                                <p className="text-[10px] xs:text-xs text-neutral-500 mb-0.5">EMI</p>
-                                <p className="font-semibold text-[10px] xs:text-xs sm:text-base text-neutral-800">{formatAmount(item.emiAmount || 0)}</p>
-                              </div>
-                              <div className="hidden sm:block w-px h-8 bg-neutral-200" />
-                              <div>
-                                <p className="text-[10px] xs:text-xs text-neutral-500 mb-0.5">Left</p>
-                                <p className="font-semibold text-[10px] xs:text-xs sm:text-base text-neutral-800">{item.remainingEmis}</p>
-                              </div>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                      <div className={`w-6 h-6 xs:w-8 xs:h-8 sm:w-10 sm:h-10 rounded-full ${item.type === 'emi' ? 'bg-blue-50' : 'bg-emerald-50'} flex items-center justify-center flex-shrink-0`}>
+                    <div className="flex items-start gap-3">
+                      {/* Status Icon */}
+                      <div className={`w-10 h-10 rounded-xl ${statusStyle.bg} flex items-center justify-center flex-shrink-0`}>
                         <Image
-                          src={item.type === 'emi' ? '/images/historyicons/emi.svg' : '/images/historyicons/one-time.svg'}
-                          alt={item.type}
-                          width={12}
-                          height={12}
-                          className="w-3 h-3 xs:w-4 xs:h-4 sm:w-5 sm:h-5"
+                          src={statusStyle.icon}
+                          alt={item.status}
+                          width={20}
+                          height={20}
+                          className="w-5 h-5"
                         />
                       </div>
-                    </div>
-                    
-                    {selectedItem === item.id && (
-                      <div className="mt-4 pt-4 border-t border-neutral-100 animate-fade-in">
-                        <div className="grid grid-cols-2 gap-3 xs:gap-4">
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-1">
+                          <h3 className="font-medium text-sm text-neutral-900 dark:text-white truncate">
+                            {item.lender}
+                          </h3>
+                          <span className={`text-[10px] font-medium capitalize px-2.5 py-1 rounded-lg ${statusStyle.bg} ${statusStyle.text}`}>
+                            {item.status}
+                          </span>
+                        </div>
+                        
+                        <p className="text-[10px] text-neutral-500 dark:text-neutral-400 mb-3">
+                          {format(new Date(item.date), 'MMM d, yyyy')}
+                        </p>
+
+                        <div className="flex flex-wrap gap-4">
                           <div>
-                            <p className="text-[10px] xs:text-xs text-neutral-500 mb-0.5">Transaction ID</p>
-                            <p className="font-medium text-[10px] xs:text-xs sm:text-sm text-neutral-700">#{item.id.toString().padStart(6, '0')}</p>
+                            <p className="text-[10px] text-neutral-500 dark:text-neutral-400 mb-0.5">Amount</p>
+                            <p className="font-medium text-sm text-neutral-900 dark:text-white">
+                              {formatAmount(item.amount)}
+                            </p>
                           </div>
-                          <div>
-                            <p className="text-[10px] xs:text-xs text-neutral-500 mb-0.5">Type</p>
-                            <p className="font-medium text-[10px] xs:text-xs sm:text-sm text-neutral-700 capitalize">{item.type}</p>
-                          </div>
+                          
                           {item.type === 'emi' && (
                             <>
                               <div>
-                                <p className="text-[10px] xs:text-xs text-neutral-500 mb-0.5">Tenure</p>
-                                <p className="font-medium text-[10px] xs:text-xs sm:text-sm text-neutral-700">{item.tenure} months</p>
+                                <p className="text-[10px] text-neutral-500 dark:text-neutral-400 mb-0.5">EMI</p>
+                                <p className="font-medium text-sm text-neutral-900 dark:text-white">
+                                  {formatAmount(item.emiAmount || 0)}
+                                </p>
                               </div>
-                              <div>
-                                <p className="text-[10px] xs:text-xs text-neutral-500 mb-0.5">Progress</p>
-                                <div className="w-full h-1.5 sm:h-2 bg-neutral-100 rounded-full overflow-hidden">
+                              
+                              {/* EMI Progress */}
+                              <div className="w-full mt-2">
+                                <div className="flex justify-between items-center mb-1.5">
+                                  <p className="text-[10px] text-neutral-500 dark:text-neutral-400">
+                                    EMI Progress
+                                  </p>
+                                  <p className="text-[10px] font-medium text-neutral-900 dark:text-white">
+                                    {item.tenure! - item.remainingEmis!}/{item.tenure} paid
+                                  </p>
+                                </div>
+                                <div className="h-1.5 bg-neutral-100 dark:bg-neutral-700 rounded-full overflow-hidden">
                                   <div 
-                                    className="h-full bg-pink-500 rounded-full transition-all duration-500"
+                                    className="h-full bg-gradient-to-r from-[#a2195e] to-[#ff2b8f] rounded-full transition-all duration-500"
                                     style={{ 
                                       width: `${((item.tenure || 0) - (item.remainingEmis || 0)) / (item.tenure || 1) * 100}%` 
                                     }}
@@ -302,7 +348,7 @@ const HistoryPage = () => {
                           )}
                         </div>
                       </div>
-                    )}
+                    </div>
                   </div>
                 );
               })

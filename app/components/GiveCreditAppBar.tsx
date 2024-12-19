@@ -20,12 +20,6 @@ export default function GiveCreditAppBar({ loanAmount, onProtectionPlanSelect, i
     router.back();
   };
 
-  const handleSubmitCredit = () => {
-    if (isSubmitting) {
-      setIsProtectionSheetOpen(true);
-    }
-  };
-
   const handlePlanSelect = (plan: string) => {
     setSelectedPlan(plan);
     onProtectionPlanSelect(plan);
@@ -41,7 +35,7 @@ export default function GiveCreditAppBar({ loanAmount, onProtectionPlanSelect, i
   return (
     <>
       <div className="bg-gradient-to-r from-[#A2195E] to-[#8B1550] p-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center">
           <div className="flex items-center gap-3">
             <button 
               onClick={handleBackClick}
@@ -57,12 +51,6 @@ export default function GiveCreditAppBar({ loanAmount, onProtectionPlanSelect, i
             </button>
             <span className="text-white text-lg font-medium">Give Credit</span>
           </div>
-          <button
-            onClick={handleSubmitCredit}
-            className="px-4 py-2 bg-white text-[#A2195E] rounded-lg text-sm font-medium hover:bg-opacity-90 transition-opacity"
-          >
-            Submit
-          </button>
         </div>
       </div>
 

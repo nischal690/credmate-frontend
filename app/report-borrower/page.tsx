@@ -8,7 +8,7 @@ import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { auth } from '../../lib/firebase';
 
-const baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 export default function ReportBorrower() {
   const router = useRouter();
@@ -39,7 +39,49 @@ export default function ReportBorrower() {
         ? (parseFloat(formData.unpaidAmount) * 0.02).toFixed(2) 
         : 0;
       console.log('Recovery fee:', recoveryFee);
-      // TODO: Implement API call to submit the report
+      
+      const user = auth.currentUser;
+      if (!user) {
+        console.error('User not authenticated. Please login again.');
+        return;
+      }
+
+      const idToken = await user.getIdToken(true);
+      
+      const requestBody = {
+        mobileNumber: `+91${formData.borrowerPhone}`,
+        unpaidAmount: parseFloat(formData.unpaidAmount),
+        dueDate: new Date(formData.dueDate).toISOString(),
+        recoveryMode: formData.reportType === 'recovery_service'
+      };
+
+      alert(`Making API Call to: ${baseURL}/borrower/report_borrower\n\nHeaders:\n${JSON.stringify({
+        'Authorization': 'Bearer ' + idToken,
+        'Content-Type': 'application/json'
+      }, null, 2)}\n\nRequest Body:\n${JSON.stringify(requestBody, null, 2)}`);
+
+      const response = await fetch(`${baseURL}/borrower/report_borrower`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestBody)
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        alert(`API Error!\nStatus: ${response.status}\nResponse:\n${errorText}`);
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      alert(`API Response:\n${JSON.stringify(data, null, 2)}`);
+      console.log('Report submitted successfully:', data);
+      
+      // Redirect to thank you page
+      router.push('/report-success');
+      
     } catch (error) {
       console.error('Error submitting form:', error);
     }
@@ -65,7 +107,11 @@ export default function ReportBorrower() {
           const formattedNumber = `+91${cleanNumber}`;
           
           const apiUrl = `${baseURL}/search/mobile/${formattedNumber}`;
-          console.log('Calling API endpoint:', apiUrl);
+          alert(`Making API Call to: ${apiUrl}\n\nHeaders:\n${JSON.stringify({
+            'Authorization': 'Bearer ' + idToken,
+            'Content-Type': 'application/json'
+          }, null, 2)}`);
+
           const response = await fetch(apiUrl, {
             method: 'GET',
             headers: {
@@ -75,6 +121,8 @@ export default function ReportBorrower() {
           });
 
           if (!response.ok) {
+            const errorText = await response.text();
+            alert(`API Error!\nStatus: ${response.status}\nResponse:\n${errorText}`);
             console.error('API Error:', {
               status: response.status,
               statusText: response.statusText,
@@ -85,7 +133,7 @@ export default function ReportBorrower() {
           }
 
           const data = await response.json();
-          console.log('API Response:', data);
+          alert(`API Response:\n${JSON.stringify(data, null, 2)}`);
 
           // Add detailed logging to debug
           console.log('Checking conditions:', {
@@ -119,12 +167,12 @@ export default function ReportBorrower() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-pink-50 to-purple-50 flex flex-col">
+    <div className="h-screen flex flex-col bg-gradient-to-br from-white via-pink-50 to-purple-50">
       {/* Header - Fixed */}
-      <div className="bg-gradient-to-r from-[#A2195E] to-[#8B1550] p-4 sticky top-0 z-10">
+      <div className="bg-gradient-to-r from-[#A2195E] to-[#8B1550] p-4">
         <div className="flex items-center gap-3">
           <button 
-            onClick={() => router.back()}
+            onClick={() => router.push('/')}
             className="text-white hover:opacity-80 transition-opacity"
           >
             <ChevronLeft className="w-6 h-6" />
@@ -160,7 +208,7 @@ export default function ReportBorrower() {
 
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto">
-        <Container maxWidth="sm" className="py-6 px-4">
+        <Container maxWidth="sm" className="py-6 px-4 pb-20">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -265,7 +313,7 @@ export default function ReportBorrower() {
                           <div className="py-2">
                             <div className="flex items-center gap-3">
                               <PhoneCall className="w-5 h-5 text-[#A2195E]" />
-                              <span className="font-semibold text-gray-800">Recovery Service</span>
+                              <span className="font-semibold text-gray-800">Assistance Service</span>
                               <IconButton
                                 onClick={(e) => {
                                   e.preventDefault();
@@ -278,8 +326,7 @@ export default function ReportBorrower() {
                               </IconButton>
                             </div>
                             <p className="text-sm text-gray-600 mt-1 ml-8">
-                              We'll actively help recover your money through our professional recovery service.
-                            </p>
+                            We are here to assist you with recovering your money through our dedicated and professional recovery services.                            </p>
                           </div>
                         }
                         className="w-full m-0 p-3"
@@ -396,6 +443,9 @@ export default function ReportBorrower() {
                     value={formData.dueDate}
                     onChange={handleInputChange('dueDate')}
                     required
+                    inputProps={{
+                      max: new Date().toISOString().split('T')[0]
+                    }}
                     InputLabelProps={{
                       shrink: true,
                     }}

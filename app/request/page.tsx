@@ -6,8 +6,12 @@ import RequestLoanAppBar from '../components/RequestLoanAppBar';
 import NavBar from '../components/NavBar';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircleIcon, ChartBarIcon, ClockIcon, UserGroupIcon } from '@heroicons/react/24/outline';
+import { CheckCircleIcon, ChartBarIcon, ClockIcon, UserGroupIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
 import ReactConfetti from 'react-confetti';
+import { auth } from '../lib/firebase';
+
+
+const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 interface Profile {
   id: string;
@@ -43,6 +47,8 @@ const RequestLoanPage = () => {
   const [requestType, setRequestType] = useState('saved');
   const [selectedProfile, setSelectedProfile] = useState<number | null>(null);
   const [mobileNumber, setMobileNumber] = useState('');
+  const [warningMessage, setWarningMessage] = useState<string | null>(null);
+  const [isSuccess, setIsSuccess] = useState(false);
   const [showLoanForm, setShowLoanForm] = useState(false);
   const [timeUnit, setTimeUnit] = useState('month');
   const [interestRate, setInterestRate] = useState('');
@@ -119,6 +125,55 @@ const RequestLoanPage = () => {
     event.preventDefault();
     // Handle loan request submission logic here
     setShowSuccessMessage(true);
+  };
+
+  const handleMobileNumberChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const cleanNumber = e.target.value.replace(/[^\d]/g, '').slice(0, 10);
+    setMobileNumber(cleanNumber);
+    setWarningMessage(null);
+    setIsSuccess(false);
+
+    if (cleanNumber.length === 10) {
+      try {
+        const user = auth.currentUser;
+        if (!user) {
+          console.error('User not authenticated');
+          return;
+        }
+
+        const idToken = await user.getIdToken(true);
+        const formattedNumber = `+91${cleanNumber}`;
+        
+        const apiUrl = `${baseURL}/search/mobile/${formattedNumber}`;
+        console.log('Calling API endpoint:', apiUrl);
+        
+        const response = await fetch(apiUrl, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${idToken}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          if (response.status === 404) {
+            setWarningMessage("The person you are requesting credit from is not currently onboarded in Credmate. We will reach out to them through WhatsApp, SMS, and call to let them know about your credit request.");
+            setIsSuccess(false);
+          } else {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+        } else {
+          const data = await response.json();
+          if (data.name) {
+            setWarningMessage(`You are requesting credit from ${data.name}`);
+            setIsSuccess(true);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        setIsSuccess(false);
+      }
+    }
   };
 
   if (showSuccessMessage) {
@@ -238,7 +293,7 @@ const RequestLoanPage = () => {
                       value="saved"
                       control={<Radio />}
                       label={
-                        <div className="flex flex-col items-center p-4 bg-pink-50 rounded-xl cursor-pointer transition-all hover:bg-pink-100">
+                        <div className="flex flex-col items-center p-4 bg-pink-50 rounded-xl cursor-pointer transition-all hover:bg-pink-100 min-h-[120px] w-full justify-center">
                           <div className="w-12 h-12 rounded-full bg-pink-200 flex items-center justify-center flex-shrink-0">
                             <Image
                               src="/images/savedborrowers.svg"
@@ -248,7 +303,7 @@ const RequestLoanPage = () => {
                               className="mb-2 mt-2"
                             />
                           </div>
-                          <span className="font-medium text-gray-800">Saved Borrowers</span>
+                          <span className="font-medium text-gray-800">Saved Lenders</span>
                         </div>
                       }
                       className="m-0 w-full"
@@ -260,7 +315,7 @@ const RequestLoanPage = () => {
                       value="new"
                       control={<Radio />}
                       label={
-                        <div className="flex flex-col items-center p-4 bg-pink-50 rounded-xl cursor-pointer transition-all hover:bg-pink-100">
+                        <div className="flex flex-col items-center p-4 bg-pink-50 rounded-xl cursor-pointer transition-all hover:bg-pink-100 min-h-[120px] w-full justify-center">
                           <div className="w-12 h-12 rounded-full bg-pink-200 flex items-center justify-center flex-shrink-0">
                             <Image
                               src="/images/newborrower.svg"
@@ -270,7 +325,7 @@ const RequestLoanPage = () => {
                               className="mb-2 mt-1"
                             />
                           </div>
-                          <span className="font-medium text-gray-800">New Borrower</span>
+                          <span className="font-medium text-gray-800">Other Lender</span>
                         </div>
                       }
                       className="m-0 w-full"
@@ -293,9 +348,9 @@ const RequestLoanPage = () => {
                           key={profile.id}
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
-                          onClick={() => handleProfileSelect(profile.id)}
+                          onClick={() => handleProfileSelect(parseInt(profile.id, 10))}
                           className={`p-4 rounded-xl border-2 transition-all cursor-pointer ${
-                            selectedProfile === profile.id
+                            selectedProfile === parseInt(profile.id, 10)
                               ? 'border-pink-500 bg-pink-50'
                               : 'border-gray-200 hover:border-pink-200'
                           }`}
@@ -331,27 +386,32 @@ const RequestLoanPage = () => {
                       label="Mobile Number"
                       variant="outlined"
                       value={mobileNumber}
-                      onChange={(e) => setMobileNumber(e.target.value)}
+                      onChange={handleMobileNumberChange}
                       placeholder="Enter 10-digit number"
-                      inputProps={{ maxLength: 10 }}
+                      inputProps={{ 
+                        maxLength: 10,
+                        pattern: '[0-9]*'
+                      }}
                       className="mb-4"
                     />
-                    <div className="bg-blue-50 rounded-xl p-4 mb-4">
-                      <div className="flex items-start space-x-3">
-                        <div className="p-2 bg-blue-100 rounded-lg">
-                          <Image
-                            src="/images/info-icon.svg"
-                            alt="Info"
-                            width={20}
-                            height={20}
-                          />
-                        </div>
-                        <div>
-                          <h4 className="font-medium text-blue-800">New to Credmate?</h4>
-                          <p className="text-sm text-blue-600">We'll create a new profile for you after verification</p>
-                        </div>
-                      </div>
-                    </div>
+                    {warningMessage && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className={`flex items-center p-4 mb-4 rounded-lg ${
+                          isSuccess 
+                            ? 'bg-green-50 text-green-800' 
+                            : 'bg-yellow-50 text-yellow-800'
+                        }`}
+                      >
+                        {isSuccess ? (
+                          <CheckCircleIcon className="w-5 h-5 mr-2 text-green-600" />
+                        ) : (
+                          <InformationCircleIcon className="w-5 h-5 mr-2 text-yellow-600" />
+                        )}
+                        <span className="text-sm">{warningMessage}</span>
+                      </motion.div>
+                    )}
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -375,9 +435,9 @@ const RequestLoanPage = () => {
               <h3 className="font-semibold text-gray-800 mb-4">Why Choose Credmate?</h3>
               <div className="space-y-4">
                 {[
-                  { title: 'Quick Approval', desc: 'Get loan approval within 24 hours' },
-                  { title: 'Competitive Rates', desc: 'Best-in-class interest rates from verified lenders' },
-                  { title: 'Secure Process', desc: 'End-to-end encrypted loan processing' }
+                  { title: 'Credit Health', desc: 'Doing credit transactions through Credmate improve credit health' },
+                  { title: 'Secure Process', desc: 'End-to-end encrypted loan processing' },
+                  { title: 'More Opportunities', desc: 'Get exposure to more loan offers' }
                 ].map((item, index) => (
                   <motion.div
                     key={index}

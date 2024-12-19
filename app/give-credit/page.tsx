@@ -7,8 +7,11 @@ import GiveCreditAppBar from '../components/GiveCreditAppBar';
 import NavBar from '../components/NavBar';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircleIcon, ChartBarIcon, ClockIcon, UserGroupIcon } from '@heroicons/react/24/outline';
+import { CheckCircleIcon, ChartBarIcon, ClockIcon, UserGroupIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
 import ReactConfetti from 'react-confetti';
+import { auth } from '../lib/firebase';
+
+const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 const StyledTextField = styled(TextField)({
   '& .MuiOutlinedInput-root': {
@@ -32,17 +35,19 @@ const StyledTextField = styled(TextField)({
   },
 });
 
-// Mock saved profiles data
-const savedProfiles = [
-  { id: 1, name: 'John Doe', mobile: '+91 9876543210', image: '/images/Profile.svg' },
-  { id: 2, name: 'Jane Smith', mobile: '+91 9876543211', image: '/images/Profile.svg' },
-];
+interface Profile {
+  id: string;
+  name: string;
+  mobile: string;
+  image: string;
+}
 
 interface NavBarProps {
   className?: string;
 }
 
 const GiveCreditPage = () => {
+  const [savedProfiles, setSavedProfiles] = useState<Profile[]>([]);
   const [requestType, setRequestType] = useState('saved');
   const [selectedProfile, setSelectedProfile] = useState<number | null>(null);
   const [mobileNumber, setMobileNumber] = useState('');
@@ -58,6 +63,21 @@ const GiveCreditPage = () => {
   const [selectedProtectionPlan, setSelectedProtectionPlan] = useState('free');
   const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [warningMessage, setWarningMessage] = useState<string | null>(null);
+  const [isSuccess, setIsSuccess] = useState(false);
+
+  useEffect(() => {
+    const profiles = localStorage.getItem('savedProfiles');
+    if (profiles) {
+      const parsedProfiles = JSON.parse(profiles);
+      // Ensure each profile has an image, if not set a default one
+      const profilesWithImages = parsedProfiles.map((profile: any) => ({
+        ...profile,
+        image: profile.image || '/images/saved-profiles.svg'
+      }));
+      setSavedProfiles(profilesWithImages);
+    }
+  }, []);
 
   useEffect(() => {
     setWindowSize({
@@ -132,6 +152,55 @@ const GiveCreditPage = () => {
     console.log('Submitting loan request:', submissionData);
     setShowSuccessMessage(true);
     setIsSubmitting(false);
+  };
+
+  const handleMobileNumberChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const cleanNumber = e.target.value.replace(/[^\d]/g, '').slice(0, 10);
+    setMobileNumber(cleanNumber);
+    setWarningMessage(null);
+    setIsSuccess(false);
+
+    if (cleanNumber.length === 10) {
+      try {
+        const user = auth.currentUser;
+        if (!user) {
+          console.error('User not authenticated');
+          return;
+        }
+
+        const idToken = await user.getIdToken(true);
+        const formattedNumber = `+91${cleanNumber}`;
+        
+        const apiUrl = `${baseURL}/search/mobile/${formattedNumber}`;
+        console.log('Calling API endpoint:', apiUrl);
+        
+        const response = await fetch(apiUrl, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${idToken}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          if (response.status === 404) {
+            setWarningMessage("The person you want to give credit to is not currently onboarded in Credmate. We will reach out to them through WhatsApp, SMS, and call to let them know about your credit offer.");
+            setIsSuccess(false);
+          } else {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+        } else {
+          const data = await response.json();
+          if (data.name) {
+            setWarningMessage(`You are offering credit to ${data.name}`);
+            setIsSuccess(true);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        setIsSuccess(false);
+      }
+    }
   };
 
   if (showSuccessMessage) {
@@ -301,9 +370,9 @@ const GiveCreditPage = () => {
                           key={profile.id}
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
-                          onClick={() => handleProfileSelect(profile.id)}
+                          onClick={() => handleProfileSelect(Number(profile.id))}
                           className={`p-4 rounded-xl border-2 transition-all cursor-pointer ${
-                            selectedProfile === profile.id
+                            selectedProfile === Number(profile.id)
                               ? 'border-pink-500 bg-pink-50'
                               : 'border-gray-200 hover:border-pink-200'
                           }`}
@@ -343,27 +412,50 @@ const GiveCreditPage = () => {
                       label="Borrower's Mobile Number"
                       variant="outlined"
                       value={mobileNumber}
-                      onChange={(e) => setMobileNumber(e.target.value)}
+                      onChange={handleMobileNumberChange}
                       placeholder="Enter 10-digit number"
-                      inputProps={{ maxLength: 10 }}
+                      inputProps={{ 
+                        maxLength: 10,
+                        pattern: '[0-9]*'
+                      }}
                       className="mb-4"
                     />
-                    <div className="bg-blue-50 rounded-xl p-4 mb-4">
-                      <div className="flex items-start space-x-3">
-                        <div className="p-2 bg-blue-100 rounded-lg">
-                          <Image
-                            src="/images/info-icon.svg"
-                            alt="Info"
-                            width={20}
-                            height={20}
-                          />
-                        </div>
-                        <div>
-                          <h4 className="font-medium text-blue-800">First time lending?</h4>
-                          <p className="text-sm text-blue-600">We'll verify the borrower's details before proceeding</p>
+                    {warningMessage && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className={`flex items-center p-4 mb-4 rounded-lg ${
+                          isSuccess 
+                            ? 'bg-green-50 text-green-800' 
+                            : 'bg-yellow-50 text-yellow-800'
+                        }`}
+                      >
+                        {isSuccess ? (
+                          <CheckCircleIcon className="w-5 h-5 mr-2 text-green-600" />
+                        ) : (
+                          <InformationCircleIcon className="w-5 h-5 mr-2 text-yellow-600" />
+                        )}
+                        <span className="text-sm">{warningMessage}</span>
+                      </motion.div>
+                    )}
+                    {!warningMessage && (
+                      <div className="bg-blue-50 rounded-xl p-4 mb-4">
+                        <div className="flex items-start space-x-3">
+                          <div className="p-2 bg-blue-100 rounded-lg">
+                            <Image
+                              src="/images/info-icon.svg"
+                              alt="Info"
+                              width={20}
+                              height={20}
+                            />
+                          </div>
+                          <div>
+                            <h4 className="font-medium text-blue-800">First time lending?</h4>
+                            <p className="text-sm text-blue-600">We'll verify the borrower's details before proceeding</p>
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    )}
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -625,7 +717,7 @@ const GiveCreditPage = () => {
                         onClick={() => setSelectedProtectionPlan(plan.id)}
                         className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
                           selectedProtectionPlan === plan.id
-                            ? 'border-pink-500 bg-pink-50'
+                            ? 'bg-pink-500 bg-pink-50'
                             : 'border-gray-200 hover:border-pink-200'
                         }`}
                       >

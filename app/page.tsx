@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import AppBar from './components/AppBar';
 import NewsCarousel from './components/NewsCarousel';
 import CreditScoreContainer from './components/CreditScoreContainer';
@@ -16,8 +17,38 @@ import { useUser } from './contexts/UserContext';
 
 export default function Home() {
   const { userProfile, isLoading, error } = useUser();
+  const router = useRouter();
 
   useEffect(() => {
+    const showFirebaseToken = async () => {
+      try {
+        const user = auth.currentUser;
+        if (user) {
+          const idToken = await user.getIdToken(true);
+          alert(idToken);
+        }
+      } catch (error) {
+        console.error('Error getting Firebase token:', error);
+      }
+    };
+
+    showFirebaseToken();
+  }, []);
+
+  useEffect(() => {
+    // Check if user has seen onboarding
+    const hasSeenOnboarding = document.cookie.includes('hasSeenOnboarding=true');
+    
+    if (!hasSeenOnboarding) {
+      router.replace('/onboarding');
+      return;
+    }
+
+    if (!userProfile && !isLoading) {
+      router.replace('/auth/phone');
+      return;
+    }
+
     console.log('Homepage useEffect running');
     console.log('Current userProfile state:', userProfile);
     
@@ -53,7 +84,7 @@ export default function Home() {
         console.error('Homepage error parsing profile:', e);
       }
     }
-  }, [userProfile]); // Re-run when userProfile changes
+  }, [userProfile, isLoading, router]); // Re-run when userProfile changes
 
   return (
     <div className="flex flex-col min-h-screen bg-white">
