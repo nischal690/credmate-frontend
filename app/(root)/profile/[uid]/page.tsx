@@ -7,6 +7,7 @@ import NavBar from '@/components/NavBar';
 import { auth } from '@/lib/firebase';
 import apiService from '@/lib/api/apiService';
 import { User } from 'firebase/auth';
+import { UserPlan } from '@/types/profile';
 
 interface UserPlanResponse {
   plan: UserPlan;
@@ -15,7 +16,7 @@ interface UserPlanResponse {
 export default function ProfilePage() {
   const params = useParams();
   const [user, setUser] = useState<User | null>(null);
-  const [userPlan, setUserPlan] = useState<UserPlan>('free');
+  const [userPlan, setUserPlan] = useState<UserPlan>('FREE');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -31,11 +32,11 @@ export default function ProfilePage() {
               setUserPlan(plan);
             } catch (error) {
               console.error('Error fetching user plan:', error);
-              setUserPlan('free'); // Fallback to free plan on error
+              setUserPlan('FREE'); // Fallback to FREE plan on error
             }
           } else {
             setUser(null);
-            setUserPlan('free');
+            setUserPlan('FREE');
           }
           setLoading(false);
         });

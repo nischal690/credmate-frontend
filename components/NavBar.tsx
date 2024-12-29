@@ -14,14 +14,9 @@ export default function NavBar({ className }: NavBarProps) {
   const pathname = usePathname();
   const { userProfile, isLoading, error } = useUser();
 
-  // Debug logs
-  console.log('Auth current user:', auth.currentUser?.uid);
-  console.log('User Profile:', userProfile);
-  console.log('Is Loading:', isLoading);
-
   // Get the profile path
   const getProfilePath = () => {
-    if (isLoading) return '/profile'; // Default while loading
+    if (isLoading) return '/profile';
     if (auth.currentUser) {
       return `/profile/${auth.currentUser.uid}`;
     }

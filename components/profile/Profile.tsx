@@ -1,26 +1,19 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import {
-  Container,
-  CardContent,
-  Typography,
-  Paper,
-  LinearProgress,
-  IconButton,
-  Snackbar,
-  TextField,
-  Avatar,
-} from '@mui/material';
+import { useProfile } from '@/hooks/useProfile';
+import { ProfileHeader } from './ProfileHeader';
+import { ProfileInfo } from './ProfileInfo';
+import { UserPlan, VerificationType } from '@/types/profile';
+import { VERIFICATION_TYPES } from '@/constants';
 import { useRouter } from 'next/navigation';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
-import EmailIcon from '@mui/icons-material/Email';
-import PhoneIcon from '@mui/icons-material/Phone';
-import BusinessIcon from '@mui/icons-material/Business';
-import BookmarkAddIcon from '@mui/icons-material/BookmarkAdd';
-import BookmarkAddedIcon from '@mui/icons-material/BookmarkAdded';
-import { getProfileData } from '@/lib/api/getProfileData';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Card, CardContent } from '@/components/ui/card';
 import { VerificationSection } from './VerificationSection';
+import { ProfileForm } from '@/components/forms/ProfileForm';
+import { SnackbarNotification } from '@/components/ui/SnackbarNotification';
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Camera } from 'lucide-react';
 
 interface ProfileProps {
   uid: string;
@@ -28,168 +21,108 @@ interface ProfileProps {
 }
 
 export default function Profile({ uid, userPlan }: ProfileProps) {
-  const [isEditing, setIsEditing] = useState(false);
   const [showSnackbar, setShowSnackbar] = useState(false);
-  const [profileImageUrl, setprofileImageUrl] = useState('/default-avatar.png');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [isSaved, setIsSaved] = useState(false);
-  const [tabValue, setTabValue] = useState(0);
-  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-  const [profileData, setProfileData] = useState<ProfileData>({
-    name: '',
-    email: '',
-    phone: '',
-    address: '',
-    bio: '',
-    aadharNo: '',
-    panNo: '',
-    gstNo: '',
-  });
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<
+    'success' | 'error' | 'info'
+  >('success');
+  const [isHoveringImage, setIsHoveringImage] = useState(false);
+
+  const {
+    profileData,
+    setProfileData,
+    profileImageUrl,
+    setProfileImageUrl,
+    isEditing,
+    setIsEditing,
+    loading,
+    error,
+    verificationInProgress,
+    handleSave,
+    handleVerify,
+  } = useProfile(uid);
 
   const router = useRouter();
 
-  useEffect(() => {
-    const fetchProfileData = async () => {
-      try {
-        setLoading(true);
-        const data = await getProfileData(uid);
-        setProfileData(data);
-        if (data.profileImageUrl) {
-          setprofileImageUrl(data.profileImageUrl);
-        }
-      } catch (err) {
-        console.error('Error fetching profile data:', err);
-        setError(
-          err instanceof Error ? err.message : 'Failed to fetch profile data'
-        );
+  if (loading || error) {
+    return (
+      <div className='container py-8 mx-auto'>
+        <Card>
+          <CardContent>
+            {loading ? (
+              <div className='w-full h-4 bg-gray-200 rounded'>
+                <div
+                  className='h-full bg-blue-500 rounded animate-pulse'
+                  style={{ width: '50%' }}
+                ></div>
+              </div>
+            ) : (
+              <>
+                <h2 className='mb-2 text-2xl font-bold'>Error</h2>
+                <p className='text-red-500'>{error}</p>
+              </>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
-        // If unauthorized, redirect to login
-        if ((err as any)?.response?.status === 401) {
-          router.push('/login');
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
+  const handleSnackbarClose = () => setShowSnackbar(false);
 
-    if (uid) {
-      fetchProfileData();
-    }
-  }, [uid, router]);
+  const handleEdit = () => setIsEditing(true);
 
-  const handleEdit = () => setIsEditing(!isEditing);
-
-  const handleSave = () => {
-    setIsEditing(false);
+  const handleSaveClick = async () => {
+    const result = await handleSave();
+    setSnackbarMessage(result.message);
+    setSnackbarSeverity(result.success ? 'success' : 'error');
     setShowSnackbar(true);
   };
+
+  const handleVerifyClick = async (type: VerificationType) => {
+    const result = await handleVerify(type);
+    setSnackbarMessage(result.message);
+    setSnackbarSeverity(result.success ? 'success' : 'error');
+    setShowSnackbar(true);
+  };
+
+  const handleUpgrade = () => router.push('/upgrade');
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setprofileImageUrl(reader.result as string);
+        setProfileImageUrl(reader.result as string);
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const handleChange =
-    (field: keyof ProfileData) =>
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      setProfileData({
-        ...profileData,
-        [field]: event.target.value,
-      });
-    };
-
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
-    setTabValue(newValue);
-  };
-
-  const handleSaveProfile = () => {
-    setIsSaved(!isSaved);
-    setShowSnackbar(true);
-  };
-
-  const handleVerify = async (type: string) => {
-    try {
-      // Implement your verification flow here
-      console.log(`Starting verification for ${type}`);
-      // Example:
-      // await verifyDocument(type, userId);
-    } catch (error) {
-      console.error(`Verification failed for ${type}:`, error);
-    }
-  };
-
-  const handleUpgrade = () => {
-    router.push('/upgrade');
-  };
-
-  if (loading) {
-    return (
-      <Container maxWidth='lg' sx={{ py: 4 }}>
-        <Paper>
-          <CardContent>
-            <LinearProgress />
-          </CardContent>
-        </Paper>
-      </Container>
-    );
-  }
-
-  if (error) {
-    return (
-      <Container maxWidth='lg' sx={{ py: 4 }}>
-        <Paper>
-          <CardContent>
-            <Typography variant='h6' gutterBottom>
-              Error
-            </Typography>
-            <Typography variant='body1' color='error'>
-              {error}
-            </Typography>
-          </CardContent>
-        </Paper>
-      </Container>
-    );
-  }
-
   return (
     <div className='min-h-screen bg-gradient-to-br from-pink-50 via-white to-pink-100'>
-      {/* Header */}
-      <div className='fixed top-0 left-0 right-0 z-50'>
-        <div className='border-b bg-white/80 backdrop-blur-lg border-neutral-100'>
-          <div className='flex items-center justify-between h-16 max-w-md px-4 mx-auto'>
-            <h1 className='text-xl font-semibold text-transparent bg-gradient-to-r from-pink-700 to-pink-500 bg-clip-text'>
-              My Profile
-            </h1>
-            <IconButton
-              onClick={isEditing ? handleSave : handleEdit}
-              className={`w-10 h-10 ${isEditing ? 'text-pink-600' : 'text-gray-600'} hover:scale-105 transition-transform`}
-            >
-              {isEditing ? <BookmarkAddedIcon /> : <BookmarkAddIcon />}
-            </IconButton>
-          </div>
-        </div>
-      </div>
+      <ProfileHeader
+        isEditing={isEditing}
+        onEdit={handleEdit}
+        onSave={handleSaveClick}
+      />
 
-      {/* Main Content */}
-      <div className='max-w-md px-4 pt-24 pb-24 mx-auto'>
+      <div className='max-w-3xl px-4 pt-24 pb-24 mx-auto'>
         <div className='relative'>
           {/* Banner */}
           <div className='h-40 rounded-t-3xl bg-gradient-to-r from-pink-400 to-pink-600' />
 
           {/* Profile Image */}
           <div className='absolute transform -translate-x-1/2 -translate-y-1/2 left-1/2'>
-            <div className='relative w-32 h-32 overflow-hidden border-4 border-white rounded-full shadow-xl'>
-              <Avatar
-                src={profileImageUrl}
-                sx={{ width: '100%', height: '100%' }}
-              />
+            <div
+              className='relative w-32 h-32 overflow-hidden border-4 border-white rounded-full shadow-xl'
+              onMouseEnter={() => setIsHoveringImage(true)}
+              onMouseLeave={() => setIsHoveringImage(false)}
+            >
+              <Avatar className='w-full h-full'>
+                <AvatarImage src={profileImageUrl} alt={profileData.name} />
+                <AvatarFallback>{profileData.name.charAt(0)}</AvatarFallback>
+              </Avatar>
               <input
                 accept='image/*'
                 type='file'
@@ -197,100 +130,64 @@ export default function Profile({ uid, userPlan }: ProfileProps) {
                 hidden
                 onChange={handleImageUpload}
               />
-            </div>
-          </div>
-
-          {/* Profile Info */}
-          <div className='p-6 mt-16 bg-white shadow-lg rounded-3xl'>
-            <div className='mb-6 text-center'>
-              <h2 className='text-2xl font-bold text-transparent bg-gradient-to-r from-pink-700 to-pink-500 bg-clip-text'>
-                {profileData.name}
-              </h2>
-              <p className='mt-2 text-gray-500'>{profileData.bio}</p>
-            </div>
-
-            {/* Quick Info */}
-            <div className='grid grid-cols-1 gap-4 mb-8 sm:grid-cols-2'>
-              {[
-                { icon: LocationOnIcon, value: profileData.address },
-                { icon: EmailIcon, value: profileData.email },
-                { icon: PhoneIcon, value: profileData.phone },
-                { icon: BusinessIcon, value: 'Business Profile' },
-              ].map(({ icon: Icon, value }, index) => (
-                <div
-                  key={index}
-                  className='flex items-center space-x-2 overflow-hidden text-gray-600'
+              <div
+                className={`absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center transition-all duration-300 ${
+                  isHoveringImage ? 'opacity-100' : 'opacity-0'
+                }`}
+              >
+                <Button
+                  variant='ghost'
+                  size='sm'
+                  className='text-white hover:bg-pink-500 hover:text-white'
+                  onClick={() =>
+                    document.getElementById('image-upload')?.click()
+                  }
                 >
-                  <Icon className='flex-shrink-0 text-pink-500' />
-                  <span className='text-sm truncate'>{value}</span>
-                </div>
-              ))}
+                  <Camera className='w-4 h-4 mr-2' />
+                  Change Photo
+                </Button>
+              </div>
             </div>
-
-            {/* Verification Section */}
-            {!isEditing && (
-              <div className='space-y-4'>
-                <VerificationSection
-                  type='aadhar'
-                  label='Aadhaar Verification'
-                  value={profileData.aadharNo}
-                  userPlan={userPlan}
-                  onVerify={handleVerify}
-                  onUpgrade={handleUpgrade}
-                />
-
-                <VerificationSection
-                  type='pan'
-                  label='PAN Verification'
-                  value={profileData.panNo}
-                  userPlan={userPlan}
-                  onVerify={handleVerify}
-                  onUpgrade={handleUpgrade}
-                />
-
-                <VerificationSection
-                  type='gst'
-                  label='GST Verification'
-                  value={profileData.gstNo}
-                  userPlan={userPlan}
-                  onVerify={handleVerify}
-                  onUpgrade={handleUpgrade}
-                />
-              </div>
-            )}
-
-            {/* Edit Form */}
-            {isEditing && (
-              <div className='pt-6 mt-8 space-y-6 border-t border-pink-100'>
-                {Object.entries(profileData)
-                  .filter(([field]) => field !== 'profileImageUrl')
-                  .map(([field, value]) => (
-                    <div key={field} className='space-y-2'>
-                      <label className='text-sm font-medium text-gray-500 capitalize'>
-                        {field.replace(/([A-Z])/g, ' $1').trim()}
-                      </label>
-                      <TextField
-                        fullWidth
-                        value={value}
-                        onChange={handleChange(field as keyof ProfileData)}
-                        variant='outlined'
-                        multiline={field === 'bio'}
-                        rows={field === 'bio' ? 4 : 1}
-                        className='shadow-sm'
-                      />
-                    </div>
-                  ))}
-              </div>
-            )}
           </div>
+
+          <Card className='mt-16 shadow-lg'>
+            <CardContent className='p-6'>
+              <ProfileInfo profileData={profileData} />
+
+              {!isEditing ? (
+                <div className='mt-6 space-y-4'>
+                  {VERIFICATION_TYPES.map(({ type, label, getValue }) => (
+                    <VerificationSection
+                      key={type}
+                      type={type}
+                      label={label}
+                      value={getValue(profileData)}
+                      userPlan={userPlan}
+                      onVerify={handleVerifyClick}
+                      onUpgrade={handleUpgrade}
+                      isLoading={verificationInProgress === type}
+                      verificationState={profileData.verifications?.[type]}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <ProfileForm
+                  profileData={profileData}
+                  onChange={(field, value) =>
+                    setProfileData((prev) => ({ ...prev, [field]: value }))
+                  }
+                />
+              )}
+            </CardContent>
+          </Card>
         </div>
       </div>
 
-      <Snackbar
+      <SnackbarNotification
         open={showSnackbar}
-        autoHideDuration={3000}
-        onClose={() => setShowSnackbar(false)}
-        message={isEditing ? 'Profile updated successfully!' : 'Profile saved!'}
+        onClose={handleSnackbarClose}
+        message={snackbarMessage}
+        severity={snackbarSeverity}
       />
     </div>
   );

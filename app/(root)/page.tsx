@@ -10,9 +10,6 @@ import RecentActivity from '@/components/RecentActivity';
 import NavBar from '@/components/NavBar';
 import LoanApplication from '@/components/LoanApplication';
 import { auth } from '@/lib/firebase';
-import { onAuthStateChanged } from 'firebase/auth';
-import apiService from '@/lib/api/apiService';
-import { API_ENDPOINTS } from '@/lib/api/config';
 import { useUser } from '@/contexts/UserContext';
 
 export default function Home() {
@@ -62,7 +59,7 @@ export default function Home() {
           const value = localStorage.getItem(key);
           obj[key] = value ? JSON.parse(value) : null;
         } catch (e) {
-          obj[key] = localStorage.getItem(key); // Keep as string if can't parse JSON
+          obj[key] = localStorage.getItem(key);
         }
         return obj;
       },

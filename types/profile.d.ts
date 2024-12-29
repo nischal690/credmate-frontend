@@ -1,6 +1,12 @@
 type VerificationType = 'aadhar' | 'pan' | 'gst';
+
 type VerificationStatus = 'pending' | 'verified' | 'failed' | 'not_started';
-type UserPlan = 'free' | 'proIndividual' | 'proBusiness' | 'priorityBusiness';
+
+type UserPlan =
+  | 'FREE'
+  | 'PRO_INDIVIDUAL'
+  | 'PRO_BUSINESS'
+  | 'PRIORITY_BUSINESS';
 
 interface VerificationState {
   status: VerificationStatus;
@@ -9,18 +15,41 @@ interface VerificationState {
 }
 
 interface ProfileData {
+  // Core user data from login
+  id: string;
   name: string;
-  email: string;
-  phone: string;
-  address: string;
-  bio: string;
-  aadharNo: string;
-  panNo: string;
-  gstNo: string;
-  profileImageUrl?: string;
-  verifications?: {
-    aadhar?: VerificationState;
-    pan?: VerificationState;
-    gst?: VerificationState;
+  email?: string | null;
+  phoneNumber: string;
+  date_of_birth?: string;
+  businessType: string;
+  profileImageUrl: string | null;
+  aadhaarNumber: string | null;
+  panNumber: string | null;
+  plan: UserPlan; // maps to UserPlan type
+  planPrice?: number | null;
+  referralCode?: string;
+  status: 'ACTIVE' | 'INACTIVE';
+  metadata?: any | null;
+  createdAt?: string;
+  updatedAt?: string;
+
+  // Profile component fields
+  address?: string;
+  bio?: string;
+  gstNo?: string;
+
+  // Verification states
+  verifications: {
+    aadhar: { status: 'not_started' };
+    pan: { status: 'not_started' };
+    gst: { status: 'not_started' };
   };
 }
+
+export type {
+  VerificationType,
+  VerificationStatus,
+  UserPlan,
+  VerificationState,
+  ProfileData,
+};

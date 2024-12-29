@@ -2,6 +2,7 @@ import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
 import StarIcon from '@mui/icons-material/Star';
 import DiamondIcon from '@mui/icons-material/Diamond';
 import React from 'react';
+import { ProfileData, VerificationType } from '@/types/profile';
 
 export const plans: Plan[] = [
   {
@@ -49,5 +50,29 @@ export const plans: Plan[] = [
       'Lower contract costs',
       'Annual subscription required',
     ],
+  },
+];
+
+interface VerificationConfig {
+  type: VerificationType;
+  label: string;
+  getValue: (data: ProfileData) => string | null;
+}
+
+export const VERIFICATION_TYPES: VerificationConfig[] = [
+  {
+    type: 'aadhar',
+    label: 'Aadhaar Verification',
+    getValue: (data) => data.aadharNo ?? data.aadhaarNumber,
+  },
+  {
+    type: 'pan',
+    label: 'PAN Verification',
+    getValue: (data) => data.panNo ?? data.panNumber,
+  },
+  {
+    type: 'gst',
+    label: 'GST Verification',
+    getValue: (data) => data.gstNo ?? null,
   },
 ];
