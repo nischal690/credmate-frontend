@@ -9,7 +9,6 @@ import CreditMetricsGrid from '@/components/CreditMetricsGrid';
 import RecentActivity from '@/components/RecentActivity';
 import NavBar from '@/components/NavBar';
 import LoanApplication from '@/components/LoanApplication';
-import { auth } from '@/lib/firebase';
 import { useUser } from '@/contexts/UserContext';
 
 export default function Home() {
@@ -17,23 +16,6 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    const showFirebaseToken = async () => {
-      try {
-        const user = auth.currentUser;
-        if (user) {
-          const idToken = await user.getIdToken(true);
-          alert(idToken);
-        }
-      } catch (error) {
-        console.error('Error getting Firebase token:', error);
-      }
-    };
-
-    showFirebaseToken();
-  }, []);
-
-  useEffect(() => {
-    // Check if user has seen onboarding
     const hasSeenOnboarding = document.cookie.includes(
       'hasSeenOnboarding=true'
     );
@@ -45,51 +27,8 @@ export default function Home() {
 
     if (!userProfile && !isLoading) {
       router.replace('/auth/phone');
-      return;
     }
-
-    console.log('Homepage useEffect running');
-    console.log('Current userProfile state:', userProfile);
-
-    // Log all localStorage contents
-    console.log('=== All localStorage Contents ===');
-    const allStorageData = Object.keys(localStorage).reduce(
-      (obj, key) => {
-        try {
-          const value = localStorage.getItem(key);
-          obj[key] = value ? JSON.parse(value) : null;
-        } catch (e) {
-          obj[key] = localStorage.getItem(key);
-        }
-        return obj;
-      },
-      {} as Record<string, any>
-    );
-
-    console.log('localStorage contents:', allStorageData);
-
-    // Log specific items of interest
-    console.log('=== Important Items ===');
-    console.log('User Profile:', localStorage.getItem('user_profile'));
-    console.log('Saved Profiles:', localStorage.getItem('savedProfiles'));
-    console.log(
-      'Profile Last Fetched:',
-      localStorage.getItem('profile_last_fetched')
-    );
-
-    // Log the current profile data
-    const profileData = localStorage.getItem('user_profile');
-    console.log('Homepage found profile data in localStorage:', profileData);
-
-    if (profileData && profileData !== 'null') {
-      try {
-        const profile = JSON.parse(profileData);
-        console.log('Parsed profile data:', profile);
-      } catch (e) {
-        console.error('Homepage error parsing profile:', e);
-      }
-    }
-  }, [userProfile, isLoading, router]); // Re-run when userProfile changes
+  }, [userProfile, isLoading, router]);
 
   return (
     <div className='flex flex-col min-h-screen bg-white'>
@@ -100,7 +39,6 @@ export default function Home() {
           <div className='max-w-md mx-auto'>
             {isLoading ? (
               <div className='flex justify-center items-center min-h-[200px]'>
-                {/* Add your loading spinner component here */}
                 <p>Loading...</p>
               </div>
             ) : error ? (

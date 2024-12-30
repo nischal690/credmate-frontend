@@ -13,7 +13,7 @@ export function needsPlanUpgrade(
 ): boolean {
   // Define which verifications are available for each plan
   const planPermissions: Record<UserPlan, VerificationType[]> = {
-    FREE: ['aadhar'],
+    FREE: ['pan'],
     PRO_INDIVIDUAL: ['aadhar', 'pan'],
     PRO_BUSINESS: ['aadhar', 'pan', 'gst'],
     PRIORITY_BUSINESS: ['aadhar', 'pan', 'gst'],
@@ -91,3 +91,24 @@ export const createInitialProfileState = (): ProfileData => ({
     gst: { status: 'not_started' },
   },
 });
+
+export const getInitialProfileState = () => {
+  try {
+    const storedProfile = localStorage.getItem('user_profile');
+    if (storedProfile) {
+      const parsedProfile = JSON.parse(storedProfile);
+      return {
+        ...createInitialProfileState(),
+        ...parsedProfile,
+        verifications: {
+          aadhar: { status: 'not_started' },
+          pan: { status: 'not_started' },
+          gst: { status: 'not_started' },
+        },
+      };
+    }
+  } catch (error) {
+    console.error('Error parsing stored profile:', error);
+  }
+  return createInitialProfileState();
+};

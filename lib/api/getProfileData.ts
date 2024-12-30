@@ -1,102 +1,71 @@
-'use client';
-
-import apiService from '@/lib/api/apiService';
-import { API_ENDPOINTS } from './config';
-
-export interface ProfileData {
-  id?: string;
-  name: string;
-  email: string | null;
-  phoneNumber: string;
-  date_of_birth?: string;
-  businessType: string;
-  profileImageUrl: string | null;
-  aadhaarNumber: string | null;
-  panNumber: string | null;
-  plan: string;
-  referralCode?: string;
-  planPrice?: number | null;
-  metadata?: any | null;
-  status?: string;
-  createdAt?: string;
-  updatedAt?: string;
-}
+import { ProfileData } from '@/types/profile';
+import { auth } from '../firebase';
 
 export async function getProfileData(uid: string): Promise<ProfileData> {
   try {
-    console.log('Fetching profile for UID:', uid);
+    // Check cached profile
+    const storedProfile = localStorage.getItem('user_profile');
+    const lastFetched = localStorage.getItem('profile_last_fetched');
+    const cacheDuration = 24 * 60 * 60 * 1000; // 24 hours
 
-    // I will first try get data from local storage
-    const cachedProfile = localStorage.getItem('user-profile');
-    if (cachedProfile) {
-      const profileData = JSON.parse(cachedProfile);
-      if (profileData && profileData.id === uid) {
-        console.log('Returning cached profile data');
-        return profileData;
+    if (
+      storedProfile &&
+      lastFetched &&
+      Date.now() - parseInt(lastFetched) < cacheDuration
+    ) {
+      return JSON.parse(storedProfile);
+    }
+
+    // Fetch fresh data
+    const user = auth.currentUser;
+    const idToken = await user?.getIdToken(true);
+
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/user/complete-profile`,
+      {
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+          'Content-Type': 'application/json',
+        },
       }
-    }
+    );
 
-    const endpoint = `${API_ENDPOINTS.USER.PROFILE}/${uid}`;
-    console.log('Using endpoint:', endpoint);
+    if (!response.ok) throw new Error('Failed to fetch profile data');
 
-    const data = await apiService.get<ProfileData>(endpoint);
+    const data = await response.json();
+    localStorage.setItem('user_profile', JSON.stringify(data));
+    localStorage.setItem('profile_last_fetched', Date.now().toString());
 
-    // cache the result to localstorage
-    localStorage.setItem('user-profile', JSON.stringify(data));
     return data;
-  } catch (error: any) {
-    console.error('Error getting profile data:', {
-      status: error.response?.status,
-      data: error.response?.data,
-      message: error.message,
-      endpoint: error.config?.url,
-    });
-
-    // For development, return mock data that matches the new interface
-    if (process.env.NODE_ENV === 'development') {
-      return {
-        id: uid,
-        name: 'Test User',
-        email: null,
-        phoneNumber: '+11111111111',
-        date_of_birth: new Date().toISOString(),
-        businessType: 'Public Limited',
-        profileImageUrl: '/default-avatar.png',
-        aadhaarNumber: null,
-        panNumber: null,
-        plan: 'FREE',
-        referralCode: 'test-referral',
-        planPrice: null,
-        metadata: null,
-        status: 'ACTIVE',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-    }
+    console.log(' get Profile data:', data);
+  } catch (error) {
+    console.error('Error getting profile data:', error);
     throw error;
   }
 }
 
-// Optionally, add a new function for updating profile
 export async function updateProfileData(
   uid: string,
-  data: Partial<ProfileData>
-) {
+  profileData: ProfileData
+): Promise<void> {
   try {
-    const endpoint = `${API_ENDPOINTS.USER.UPDATE_PROFILE}/${uid}`;
-    const response = await apiService.put<ProfileData>(endpoint, data);
+    const storedProfiles = localStorage.getItem('profiles');
+    const profiles = storedProfiles ? JSON.parse(storedProfiles) : {};
 
-    // Update the cache with new data
-    const cachedProfile = localStorage.getItem('user_profile');
-    if (cachedProfile) {
-      const currentProfile = JSON.parse(cachedProfile);
-      const updatedProfile = { ...currentProfile, ...data };
-      localStorage.setItem('user_profile', JSON.stringify(updatedProfile));
-    }
-
-    return response;
+    profiles[uid] = { ...profileData, id: uid };
+    localStorage.setItem('profiles', JSON.stringify(profiles));
   } catch (error) {
-    console.error('Error updating profile:', error);
+    console.error('Error updating profile data:', error);
     throw error;
+  }
+}
+
+export async function getStoredProfile(): Promise<{ id: string } | null> {
+  try {
+    const currentProfile = localStorage.getItem('current_profile');
+    return currentProfile ? JSON.parse(currentProfile) : null;
+  } catch (error) {
+    console.error('Error getting stored profile:', error);
+    return null;
   }
 }

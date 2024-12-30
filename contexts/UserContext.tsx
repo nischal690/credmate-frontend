@@ -1,19 +1,14 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
-import { API_ENDPOINTS } from '../lib/api/config';
-import apiService from '../lib/api/apiService';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import { fetchAndStoreSavedProfiles } from '../utils/api';
 import { getProfileData } from '@/lib/api/getProfileData';
-
-interface UserProfile {
-  [key: string]: any;
-}
+import { ProfileData } from '@/types/profile';
 
 interface UserContextType {
-  userProfile: UserProfile | null;
+  userProfile: ProfileData | null;
   isLoading: boolean;
   error: string | null;
   refreshProfile: () => Promise<void>;
@@ -26,12 +21,33 @@ const STORAGE_KEY = 'user_profile';
 const PROFILE_TIMESTAMP_KEY = 'profile_last_fetched';
 const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 
+// Helper functions for localStorage
+const storage = {
+  get: (key: string) => {
+    if (typeof window !== 'undefined') {
+      const item = localStorage.getItem(key);
+      return item ? JSON.parse(item) : null;
+    }
+    return null;
+  },
+  set: (key: string, value: any) => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(key, JSON.stringify(value));
+    }
+  },
+  remove: (key: string) => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(key);
+    }
+  },
+};
+
 export function UserProvider({ children }: { children: React.ReactNode }) {
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [userProfile, setUserProfile] = useState<ProfileData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchProfile = async (): Promise<UserProfile | null> => {
+  const fetchProfile = async (): Promise<ProfileData | null> => {
     try {
       const user = auth.currentUser;
 
@@ -40,15 +56,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         return null;
       }
 
-      console.log('Getting fresh ID token for user:', user.uid);
-      console.log('User phone number:', user.phoneNumber);
-      console.log('User metadata:', user.metadata);
-
       const idToken = await user.getIdToken(true);
-      console.log(
-        'Got fresh ID token, first 10 chars:',
-        idToken.substring(0, 10)
-      );
 
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_BASE_URL}/user/complete-profile`,
@@ -62,16 +70,10 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       );
 
       if (!response.ok) {
-        console.error(
-          'Profile fetch failed:',
-          response.status,
-          response.statusText
-        );
         throw new Error(`Failed to fetch profile: ${response.statusText}`);
       }
 
       const data = await response.json();
-      console.log('Profile data received:', data);
       return data;
     } catch (error) {
       console.error('Error fetching user profile:', error);
@@ -80,7 +82,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   };
 
   const shouldFetchProfile = () => {
-    const lastFetched = localStorage.getItem(PROFILE_TIMESTAMP_KEY);
+    const lastFetched = storage.get(PROFILE_TIMESTAMP_KEY);
     if (!lastFetched) return true;
 
     const timeSinceLastFetch = Date.now() - parseInt(lastFetched);
@@ -92,54 +94,25 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     setError(null);
 
     try {
-      // First check if user is authenticated
       const user = auth.currentUser;
       if (!user) {
-        console.log('No authenticated user, clearing profile');
         setUserProfile(null);
-        localStorage.removeItem(STORAGE_KEY);
+        storage.remove(STORAGE_KEY);
         return;
       }
 
-      // Then try to get a fresh token
-      try {
-        await user.getIdToken(true);
-      } catch (tokenError) {
-        console.error('Error refreshing token:', tokenError);
-        // Don't throw here, let's try to use the existing token
-      }
-
-      console.log('Fetching profile data...');
       const data = await fetchProfile();
-      console.log('Fetched profile data:', data);
 
       if (data) {
-        console.log('Setting user profile in state and localStorage');
         setUserProfile(data);
-
-        // Save to localStorage
-        const dataString = JSON.stringify(data);
-        localStorage.setItem(STORAGE_KEY, dataString);
-        localStorage.setItem(PROFILE_TIMESTAMP_KEY, Date.now().toString());
-
-        // Log localStorage contents for debugging
-        console.log(
-          'All localStorage contents:',
-          Object.fromEntries(
-            Object.keys(localStorage).map((key) => [
-              key,
-              localStorage.getItem(key),
-            ])
-          )
-        );
+        storage.set(STORAGE_KEY, data);
+        storage.set(PROFILE_TIMESTAMP_KEY, Date.now().toString());
       } else {
-        console.log('No profile data received from API');
         setUserProfile(null);
-        localStorage.setItem(STORAGE_KEY, 'null');
+        storage.remove(STORAGE_KEY);
       }
     } catch (err) {
       console.error('Error refreshing profile:', err);
-      // Only set error, don't clear profile data
       setError('Failed to fetch user profile');
     } finally {
       setIsLoading(false);
@@ -154,14 +127,19 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Listen for auth state changes
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      console.log(
+        'Auth state changed:',
+        firebaseUser ? 'User logged in' : 'No user'
+      );
       if (firebaseUser) {
         try {
+          console.log('Fetching profile data for user:', firebaseUser.uid);
           const data = await getProfileData(firebaseUser.uid);
+          console.log('Profile data fetched:', data);
           setUserProfile(data);
         } catch (error) {
           console.error('Error fetching profile:', error);

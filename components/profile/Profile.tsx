@@ -1,26 +1,27 @@
 'use client';
 
-import { useProfile } from '@/hooks/useProfile';
-import { ProfileHeader } from './ProfileHeader';
-import { ProfileInfo } from './ProfileInfo';
-import { UserPlan, VerificationType } from '@/types/profile';
+import { VerificationType } from '@/types/profile';
 import { VERIFICATION_TYPES } from '@/constants';
 import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
-import { VerificationSection } from './VerificationSection';
 import { ProfileForm } from '@/components/forms/ProfileForm';
 import { SnackbarNotification } from '@/components/ui/SnackbarNotification';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Camera } from 'lucide-react';
+import { useUser } from '@/contexts/UserContext';
+import { useProfile } from '@/hooks/useProfile';
+import { ProfileHeader } from './ProfileHeader';
+import { ProfileInfo } from './ProfileInfo';
+import { VerificationSection } from './VerificationSection';
 
 interface ProfileProps {
   uid: string;
-  userPlan: UserPlan;
 }
 
-export default function Profile({ uid, userPlan }: ProfileProps) {
+export default function Profile({ uid }: ProfileProps) {
+  const { userProfile, refreshProfile, isLoading: contextLoading } = useUser();
   const [showSnackbar, setShowSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<
@@ -29,14 +30,10 @@ export default function Profile({ uid, userPlan }: ProfileProps) {
   const [isHoveringImage, setIsHoveringImage] = useState(false);
 
   const {
-    profileData,
-    setProfileData,
     profileImageUrl,
     setProfileImageUrl,
     isEditing,
     setIsEditing,
-    loading,
-    error,
     verificationInProgress,
     handleSave,
     handleVerify,
@@ -44,24 +41,17 @@ export default function Profile({ uid, userPlan }: ProfileProps) {
 
   const router = useRouter();
 
-  if (loading || error) {
+  if (contextLoading || !userProfile) {
     return (
       <div className='container py-8 mx-auto'>
         <Card>
           <CardContent>
-            {loading ? (
-              <div className='w-full h-4 bg-gray-200 rounded'>
-                <div
-                  className='h-full bg-blue-500 rounded animate-pulse'
-                  style={{ width: '50%' }}
-                ></div>
-              </div>
-            ) : (
-              <>
-                <h2 className='mb-2 text-2xl font-bold'>Error</h2>
-                <p className='text-red-500'>{error}</p>
-              </>
-            )}
+            <div className='w-full h-4 bg-gray-200 rounded'>
+              <div
+                className='h-full bg-blue-500 rounded animate-pulse'
+                style={{ width: '50%' }}
+              />
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -69,7 +59,6 @@ export default function Profile({ uid, userPlan }: ProfileProps) {
   }
 
   const handleSnackbarClose = () => setShowSnackbar(false);
-
   const handleEdit = () => setIsEditing(true);
 
   const handleSaveClick = async () => {
@@ -109,10 +98,8 @@ export default function Profile({ uid, userPlan }: ProfileProps) {
 
       <div className='max-w-3xl px-4 pt-24 pb-24 mx-auto'>
         <div className='relative'>
-          {/* Banner */}
           <div className='h-40 rounded-t-3xl bg-gradient-to-r from-pink-400 to-pink-600' />
 
-          {/* Profile Image */}
           <div className='absolute transform -translate-x-1/2 -translate-y-1/2 left-1/2'>
             <div
               className='relative w-32 h-32 overflow-hidden border-4 border-white rounded-full shadow-xl'
@@ -120,8 +107,8 @@ export default function Profile({ uid, userPlan }: ProfileProps) {
               onMouseLeave={() => setIsHoveringImage(false)}
             >
               <Avatar className='w-full h-full'>
-                <AvatarImage src={profileImageUrl} alt={profileData.name} />
-                <AvatarFallback>{profileData.name.charAt(0)}</AvatarFallback>
+                <AvatarImage src={profileImageUrl} alt={userProfile.name} />
+                <AvatarFallback>{userProfile.name.charAt(0)}</AvatarFallback>
               </Avatar>
               <input
                 accept='image/*'
@@ -138,7 +125,7 @@ export default function Profile({ uid, userPlan }: ProfileProps) {
                 <Button
                   variant='ghost'
                   size='sm'
-                  className='text-white hover:bg-pink-500 hover:text-white'
+                  className='text-white transition-all ease-in hover:bg-pink-500/20 hover:text-white'
                   onClick={() =>
                     document.getElementById('image-upload')?.click()
                   }
@@ -152,7 +139,7 @@ export default function Profile({ uid, userPlan }: ProfileProps) {
 
           <Card className='mt-16 shadow-lg'>
             <CardContent className='p-6'>
-              <ProfileInfo profileData={profileData} />
+              <ProfileInfo profileData={userProfile} />
 
               {!isEditing ? (
                 <div className='mt-6 space-y-4'>
@@ -161,21 +148,21 @@ export default function Profile({ uid, userPlan }: ProfileProps) {
                       key={type}
                       type={type}
                       label={label}
-                      value={getValue(profileData)}
-                      userPlan={userPlan}
+                      value={getValue(userProfile)}
+                      userPlan={userProfile.plan}
                       onVerify={handleVerifyClick}
                       onUpgrade={handleUpgrade}
                       isLoading={verificationInProgress === type}
-                      verificationState={profileData.verifications?.[type]}
+                      verificationState={userProfile.verifications?.[type]}
                     />
                   ))}
                 </div>
               ) : (
                 <ProfileForm
-                  profileData={profileData}
-                  onChange={(field, value) =>
-                    setProfileData((prev) => ({ ...prev, [field]: value }))
-                  }
+                  profileData={userProfile}
+                  onChange={async (field, value) => {
+                    await refreshProfile();
+                  }}
                 />
               )}
             </CardContent>
