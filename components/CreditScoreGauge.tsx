@@ -14,6 +14,8 @@ export default function CreditScoreGauge({ scoreType }: CreditScoreGaugeProps) {
   const { userProfile } = useUser();
   const [currentScore, setCurrentScore] = useState(0);
 
+  console.log('CreditScoreGauge -> userProfile', userProfile);
+
   // Constants for the circular arc
   const startAngle = -180; // Start from left
   const endAngle = 0; // End at right
