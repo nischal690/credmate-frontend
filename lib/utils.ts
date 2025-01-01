@@ -13,7 +13,7 @@ export function needsPlanUpgrade(
 ): boolean {
   // Define which verifications are available for each plan
   const planPermissions: Record<UserPlan, VerificationType[]> = {
-    FREE: ['pan'],
+    FREE: [],
     PRO_INDIVIDUAL: ['aadhar', 'pan'],
     PRO_BUSINESS: ['aadhar', 'pan', 'gst'],
     PRIORITY_BUSINESS: ['aadhar', 'pan', 'gst'],
