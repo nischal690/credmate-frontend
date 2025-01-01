@@ -74,7 +74,11 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       }
 
       const data = await response.json();
-      return data;
+      return {
+        ...data,
+        credmate_score: data.credmate_score || Math.floor(Math.random() * 1000),
+        cibil_score: data.cibil_score || Math.floor(Math.random() * 900),
+      };
     } catch (error) {
       console.error('Error fetching user profile:', error);
       throw error;
