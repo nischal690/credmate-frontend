@@ -34,11 +34,12 @@ export async function getProfileData(uid: string): Promise<ProfileData> {
 
     const data = await response.json();
 
-    // fallback 
+    // fallback
     const profileData = {
       ...data,
-      credmate_score: data.credmate_score || Math.floor(Math.random() * 1000),
-      cibil_score: data.cibil_score || Math.floor(Math.random() * 900),
+      plan: 'FREE',
+      credmate_score: data.credmate_score || 750,
+      cibil_score: data.cibil_score || 675,
     };
 
     localStorage.setItem('user_profile', JSON.stringify(profileData));
