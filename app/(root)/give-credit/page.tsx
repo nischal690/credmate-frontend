@@ -26,7 +26,9 @@ import {
   InformationCircleIcon,
 } from '@heroicons/react/24/outline';
 import ReactConfetti from 'react-confetti';
-import { auth } from '../../lib/firebase';
+import { useRouter } from 'next/navigation';
+import { useUser } from '@/contexts/UserContext';
+import { auth } from '../../../lib/firebase';
 
 const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL;
 

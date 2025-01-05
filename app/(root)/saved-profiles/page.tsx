@@ -1,40 +1,35 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
 import {
   Card,
   CardContent,
   Typography,
-  Avatar,
-  Button,
-  Grid,
-  Container,
-  CircularProgress,
   Box,
-  Snackbar,
-  Alert,
-  IconButton,
   styled,
-  Collapse,
-  Divider,
+  Grid,
+  IconButton,
+  Chip,
+  useTheme,
+  alpha,
+  Button,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
-  Fade,
+  TextField,
+  MenuItem,
 } from '@mui/material';
+import { useRouter } from 'next/navigation';
+import { useUser } from '@/contexts/UserContext';
+import { auth } from '@/lib/firebase';
+import { getSavedProfilesFromStorage } from '@/utils/api';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
-import NoProfilesIcon from '@mui/icons-material/PersonOutline';
-import AddIcon from '@mui/icons-material/Add';
-import SearchIcon from '@mui/icons-material/Search';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import PersonIcon from '@mui/icons-material/Person';
 import PhoneIcon from '@mui/icons-material/Phone';
 import BusinessIcon from '@mui/icons-material/Business';
 import { motion } from 'framer-motion';
-import { getSavedProfilesFromStorage } from '../../../utils/api';
-import { useUser } from '../contexts/UserContext';
 import Image from 'next/image';
 
 const StyledCard = styled(Card)(({ theme }) => ({
