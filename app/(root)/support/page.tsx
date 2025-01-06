@@ -6,8 +6,9 @@ import {
   useTheme,
   alpha
 } from '@mui/material';
-import { useUser } from '../contexts/UserContext';
 import { useRouter } from 'next/navigation';
+import { useUser } from '@/contexts/UserContext';
+import { auth } from '../../../lib/firebase';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import EmailIcon from '@mui/icons-material/Email';

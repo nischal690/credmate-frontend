@@ -16,7 +16,11 @@ export default function CreditScoreGauge({ scoreType }: CreditScoreGaugeProps) {
   const [currentScore, setCurrentScore] = useState(0);
   const [showKYCDialog, setShowKYCDialog] = useState(false);
 
-  console.log('CreditScoreGauge -> userProfile', userProfile);
+  useEffect(() => {
+    if (userProfile) {
+      console.log('CreditScoreGauge -> userProfile', userProfile);
+    }
+  }, [userProfile]);
 
   // Constants for the circular arc
   const startAngle = -180; // Start from left
