@@ -4,15 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { HelpCircle, Lock } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/contexts/UserContext';
-import { set } from 'date-fns';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from './ui/dialog';
-import { Button } from './ui/button';
+import KYCDialog from './KYCdialog';
 
 interface CreditScoreGaugeProps {
   scoreType?: 'credmate' | 'cibil';
@@ -171,33 +163,10 @@ export default function CreditScoreGauge({ scoreType }: CreditScoreGaugeProps) {
         </div>
       </div>
 
-      <Dialog open={showKYCDialog} onOpenChange={setShowKYCDialog}>
-        <DialogContent className='sm:max-w-md'>
-          <DialogHeader>
-            <DialogTitle>Complete KYC Required</DialogTitle>
-            <DialogDescription>
-              To access your detailed credit report, you need to complete the
-              KYC process first. This helps us verify your identity and provide
-              accurate credit information.
-            </DialogDescription>
-          </DialogHeader>
-          <div className='flex flex-col gap-4 mt-4'>
-            <Button
-              onClick={() => router.push('/history')}
-              className='w-full bg-[#A2195E] hover:bg-[#894567]'
-            >
-              Start KYC Process
-            </Button>
-            <Button
-              variant='outline'
-              onClick={() => setShowKYCDialog(false)}
-              className='w-full'
-            >
-              Maybe Later
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <KYCDialog
+        isOpen={showKYCDialog}
+        onClose={() => setShowKYCDialog(false)}
+      />
     </>
   );
 }
