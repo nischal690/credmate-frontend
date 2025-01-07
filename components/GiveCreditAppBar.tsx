@@ -11,7 +11,11 @@ interface GiveCreditAppBarProps {
   isSubmitting: boolean;
 }
 
-export default function GiveCreditAppBar({ loanAmount, onProtectionPlanSelect, isSubmitting }: GiveCreditAppBarProps) {
+export default function GiveCreditAppBar({
+  loanAmount,
+  onProtectionPlanSelect,
+  isSubmitting,
+}: GiveCreditAppBarProps) {
   const router = useRouter();
   const [isProtectionSheetOpen, setIsProtectionSheetOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState('free');
@@ -34,22 +38,22 @@ export default function GiveCreditAppBar({ loanAmount, onProtectionPlanSelect, i
 
   return (
     <>
-      <div className="bg-gradient-to-r from-[#A2195E] to-[#8B1550] p-4">
-        <div className="flex items-center">
-          <div className="flex items-center gap-3">
-            <button 
+      <div className='bg-gradient-to-r from-[#A2195E] to-[#8B1550] p-4'>
+        <div className='flex items-center'>
+          <div className='flex items-center gap-3'>
+            <button
               onClick={handleBackClick}
-              className="text-white hover:opacity-80 transition-opacity"
+              className='text-white transition-opacity hover:opacity-80'
             >
               <Image
-                src="/images/searchprofileicons/arrowbendleft.svg"
-                alt="Back Icon"
-                width={24} 
+                src='/images/searchprofileicons/arrowbendleft.svg'
+                alt='Back Icon'
+                width={24}
                 height={24}
-                className="invert"
+                className='invert'
               />
             </button>
-            <span className="text-white text-lg font-medium">Give Credit</span>
+            <span className='text-lg font-medium text-white'>Give Credit</span>
           </div>
         </div>
       </div>
